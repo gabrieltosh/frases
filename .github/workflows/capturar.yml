@@ -1,0 +1,54 @@
+name: Capturar desde Telegram
+
+on:
+  schedule:
+    # Cada 10 minutos. GitHub puede retrasar los cron en repos poco activos:
+    # el mensaje se manda al instante, sólo el commit llega con demora.
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: capturar
+  cancel-in-progress: false
+
+jobs:
+  capturar:
+    runs-on: ubuntu-latest
+    outputs:
+      guardadas: ${{ steps.sync.outputs.guardadas }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - id: sync
+        run: node scripts/telegram-sync.mjs
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_USER_ID: ${{ secrets.TELEGRAM_USER_ID }}
+          TZ: America/La_Paz
+
+      - name: Commit
+        run: |
+          git config user.name  'bot de frases'
+          git config user.email 'bot@users.noreply.github.com'
+          git add frases data
+          if git diff --staged --quiet; then
+            echo 'Sin novedades.'
+          else
+            git commit -m "frases: ${{ steps.sync.outputs.guardadas }} nueva(s) desde Telegram"
+            git push
+          fi
+
+  publicar:
+    needs: capturar
+    if: needs.capturar.outputs.guardadas != '0'
+    uses: ./.github/workflows/publicar.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

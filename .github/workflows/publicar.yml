@@ -1,0 +1,43 @@
+name: Publicar sitio
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frases/**'
+      - 'site/**'
+      - 'scripts/**'
+      - 'categorias.json'
+      - '.github/workflows/publicar.yml'
+  workflow_dispatch:
+  workflow_call:      # lo invoca «Capturar» después de guardar frases nuevas
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/build.mjs
+        env:
+          TZ: America/La_Paz
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: despliegue
+        uses: actions/deploy-pages@v4

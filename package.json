@@ -1,0 +1,14 @@
+{
+  "name": "frases",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Colección personal de frases y párrafos que vale la pena no olvidar.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "nueva": "node scripts/nueva.mjs",
+    "sync": "node scripts/telegram-sync.mjs",
+    "serve": "node scripts/build.mjs && node --run-serve 2>/dev/null || python3 -m http.server 4173 --directory dist"
+  },
+  "engines": { "node": ">=20" }
+}

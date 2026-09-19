@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es" data-tema="">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITULO}}</title>
+<meta name="description" content="{{DESCRIPCION}}">
+<meta property="og:title" content="{{TITULO}}">
+<meta property="og:description" content="{{DESCRIPCION}}">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❞</text></svg>">
+<style>{{ESTILO}}</style>
+</head>
+<body>
+<button class="tema" type="button" aria-label="Cambiar tema">◐</button>
+
+<div class="envoltura">
+  <header class="cabecera">
+    <h1>{{TITULO}}</h1>
+    <p>{{SUBTITULO}}</p>
+  </header>
+
+  <div class="controles">
+    <div class="buscador">
+      <input id="buscar" type="search" placeholder="Buscar una palabra, un autor…" autocomplete="off" aria-label="Buscar">
+      <button class="azar" type="button">Al azar</button>
+    </div>
+    <div class="filtros" role="group" aria-label="Filtrar por categoría">{{FILTROS}}</div>
+  </div>
+
+  <main class="lista">{{FRASES}}</main>
+  <p class="vacio" hidden>Nada por aquí todavía.</p>
+
+  <footer class="creditos">
+    {{TOTAL}} · actualizado el {{ACTUALIZADO}}
+  </footer>
+</div>
+
+<script>{{APP}}</script>
+</body>
+</html>
