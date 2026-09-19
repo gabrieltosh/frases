@@ -26,6 +26,7 @@ Texto de la frase, puede ocupar varias líneas.
 ```
 
 - El primer `#hashtag` que coincida con una categoría la define; los demás quedan como etiquetas.
+  Da igual si van en su propia línea o pegados al final del texto: `Una frase cualquiera. #cancion`.
 - La línea que empieza con `—` (o `-`) es la atribución: `Autor, Fuente`.
 - Sin `#categoría` la frase cae en **sin clasificar**, y la ordenas después.
 
