@@ -39,6 +39,10 @@ jobs:
           git add frases data
           if git diff --staged --quiet; then
             echo 'Sin novedades.'
+          elif [ "${{ steps.sync.outputs.guardadas }}" = "0" ]; then
+            # Sólo se movió el marcador de Telegram (comandos, nada que guardar).
+            git commit -m 'bot: marcador de Telegram al día'
+            git push
           else
             git commit -m "frases: ${{ steps.sync.outputs.guardadas }} nueva(s) desde Telegram"
             git push
