@@ -28,7 +28,11 @@ jobs:
       name: github-pages
       url: ${{ steps.despliegue.outputs.page_url }}
     steps:
+      # La rama, no el commit que inició el run: cuando «Capturar» llama aquí, el
+      # commit del bot con las frases nuevas todavía no existía al arrancar.
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
