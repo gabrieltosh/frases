@@ -8,6 +8,10 @@ const DIST = path.join(RAIZ, 'dist');
 const TITULO = process.env.SITIO_TITULO || 'Frases';
 const SUBTITULO = process.env.SITIO_SUBTITULO || 'Lo que valía la pena no olvidar.';
 
+/** Cada icono vive una sola vez en el sprite y se referencia con <use>. */
+const icono = (nombre, clase = 'i') =>
+  `<svg class="${clase}" aria-hidden="true"><use href="#i-${nombre}"/></svg>`;
+
 const escapar = (t) =>
   String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 
@@ -28,16 +32,16 @@ const conteos = frases.reduce((acc, f) => ({ ...acc, [f.categoria]: (acc[f.categ
 const heno = (f, cat) => normalizar([f.texto, f.autor, f.fuente, cat.nombre, ...f.tags].join(' '));
 
 const filtros = [
-  `<button class="pildora" type="button" data-categoria="todas" aria-pressed="true">Todas<span class="cuenta">${frases.length}</span></button>`,
+  `<button class="pildora" type="button" data-categoria="todas" aria-pressed="true">${icono('todas')}Todas<span class="cuenta">${frases.length}</span></button>`,
   ...Object.entries(CATEGORIAS)
     .filter(([id]) => conteos[id])
     .map(([id, cat]) =>
-      `<button class="pildora" type="button" data-categoria="${id}" aria-pressed="false">${cat.emoji} ${escapar(cat.nombre)}<span class="cuenta">${conteos[id]}</span></button>`),
+      `<button class="pildora" type="button" data-categoria="${id}" aria-pressed="false">${icono(cat.icono)}${escapar(cat.nombre)}<span class="cuenta">${conteos[id]}</span></button>`),
 ].join('\n  ');
 
 const paginas = frases
   .map((f) => {
-    const cat = CATEGORIAS[f.categoria] || { nombre: f.categoria, emoji: '○' };
+    const cat = CATEGORIAS[f.categoria] || { nombre: f.categoria, icono: 'sin-clasificar' };
 
     const atribucion = f.autor || f.fuente
       ? `<p class="atribucion">— ${escapar(f.autor || '¿?')}${f.fuente ? ` <span class="obra">· ${escapar(f.fuente)}</span>` : ''}</p>`
@@ -47,7 +51,7 @@ const paginas = frases
 
     return `<article class="pagina" data-id="${escapar(f.id)}" data-categoria="${f.categoria}" data-largo="${largoDe(f.texto)}">
     <div class="hoja">
-      <p class="rotulo">${cat.emoji} ${escapar(cat.nombre)}</p>
+      <p class="rotulo">${icono(cat.icono)} ${escapar(cat.nombre)}</p>
       <blockquote class="cita"><span class="fantasma" aria-hidden="true">${escapar(f.texto)}</span><span class="escrito"></span></blockquote>
       ${atribucion}
       <div class="pie">${etiquetas}<time datetime="${escapar(f.fecha)}">${fechaLarga(f.fecha)}</time></div>
@@ -58,32 +62,43 @@ const paginas = frases
 
 const indice = frases
   .map((f) => {
-    const cat = CATEGORIAS[f.categoria] || { nombre: f.categoria, emoji: '○' };
+    const cat = CATEGORIAS[f.categoria] || { nombre: f.categoria, icono: 'sin-clasificar' };
     const firma = [f.autor, f.fuente].filter(Boolean).join(' · ');
     return `<button class="ficha" type="button" data-id="${escapar(f.id)}" data-busqueda="${escapar(heno(f, cat))}">
       <q>${escapar(f.texto)}</q>
-      <span class="meta"><span class="categoria">${cat.emoji} ${escapar(cat.nombre)}</span>${firma ? ' · ' + escapar(firma) : ''}</span>
+      <span class="meta"><span class="categoria">${icono(cat.icono)}${escapar(cat.nombre)}</span>${firma ? ' · ' + escapar(firma) : ''}</span>
     </button>`;
   })
   .join('\n    ');
 
-const html = fs
+const leer = (...partes) => fs.readFileSync(path.join(SITIO, ...partes), 'utf8');
+
+/** El valor se inyecta tal cual: nada de $&, $1 ni compañía. */
+const meter = (html, marca, valor) => html.replace(marca, () => valor);
+
+const libreria = leer('vendor', 'page-flip.js').replaceAll('</script', '<\\/script');
+
+const html = [
+  ['{{FILTROS}}', filtros],
+  ['{{PAGINAS}}', paginas],
+  ['{{INDICE}}', indice],
+  ['{{TOTALTEXTO}}', frases.length === 1 ? '1 frase' : `${frases.length} frases`],
+  ['{{ACTUALIZADO}}', fechaLarga(hoyLocal())],
+  ['{{SPRITE}}', leer('iconos.svg').trim()],
+  ['{{ESTILO}}', [leer('vendor', 'page-flip.css'), leer('estilo.css')].join('\n')],
+  ['{{LIBRERIA}}', libreria],
+  ['{{APP}}', leer('app.js')],
+].reduce((acc, [marca, valor]) => meter(acc, marca, valor), fs
   .readFileSync(path.join(SITIO, 'plantilla.html'), 'utf8')
   .replaceAll('{{TITULO}}', escapar(TITULO))
   .replaceAll('{{DESCRIPCION}}', escapar(`${SUBTITULO} ${frases.length} frases reunidas.`))
-  .replace('{{FILTROS}}', filtros)
-  .replace('{{PAGINAS}}', paginas)
-  .replace('{{INDICE}}', indice)
-  .replaceAll('{{TOTAL}}', String(frases.length))
-  .replace('{{TOTALTEXTO}}', frases.length === 1 ? '1 frase' : `${frases.length} frases`)
-  .replace('{{ACTUALIZADO}}', fechaLarga(hoyLocal()))
-  .replace('{{ESTILO}}', fs.readFileSync(path.join(SITIO, 'estilo.css'), 'utf8'))
-  .replace('{{APP}}', fs.readFileSync(path.join(SITIO, 'app.js'), 'utf8'));
+  .replaceAll('{{TOTAL}}', String(frases.length)));
 
 fs.rmSync(DIST, { recursive: true, force: true });
 fs.mkdirSync(DIST, { recursive: true });
 fs.writeFileSync(path.join(DIST, 'index.html'), html, 'utf8');
 fs.writeFileSync(path.join(DIST, '.nojekyll'), '', 'utf8');
+// StPageFlip (MIT) va incrustada: el sitio entero es un solo archivo, sin CDN.
 // Por si algún día quieres consumirlas desde otro lado (widget, wallpaper, bot).
 fs.writeFileSync(path.join(DIST, 'frases.json'), JSON.stringify(frases, null, 2), 'utf8');
 

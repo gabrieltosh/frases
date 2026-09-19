@@ -1,9 +1,9 @@
 {
-  "reflexion":      { "nombre": "Reflexión",      "emoji": "🜔", "atajos": ["r", "reflexion", "reflexión", "pensamiento"] },
-  "cancion":        { "nombre": "Canción",        "emoji": "♪",  "atajos": ["c", "cancion", "canción", "musica", "música", "letra"] },
-  "libro":          { "nombre": "Libro",          "emoji": "❧", "atajos": ["l", "libro", "lectura", "texto"] },
-  "pelicula":       { "nombre": "Película",       "emoji": "▷",  "atajos": ["p", "pelicula", "película", "serie", "cine"] },
-  "conversacion":   { "nombre": "Conversación",   "emoji": "❞",  "atajos": ["v", "conversacion", "conversación", "dicho", "escuchado"] },
-  "propia":         { "nombre": "Propia",         "emoji": "✎",  "atajos": ["y", "propia", "mia", "mía", "yo"] },
-  "sin-clasificar": { "nombre": "Sin clasificar", "emoji": "○",  "atajos": ["sin", "inbox", "?"] }
+  "reflexion":      { "nombre": "Reflexión",      "icono": "reflexion",      "emoji": "🜔", "atajos": ["r", "reflexion", "reflexión", "pensamiento"] },
+  "cancion":        { "nombre": "Canción",        "icono": "cancion",        "emoji": "♪",  "atajos": ["c", "cancion", "canción", "musica", "música", "letra"] },
+  "libro":          { "nombre": "Libro",          "icono": "libro",          "emoji": "❧",  "atajos": ["l", "libro", "lectura", "texto"] },
+  "pelicula":       { "nombre": "Película",       "icono": "pelicula",       "emoji": "▷",  "atajos": ["p", "pelicula", "película", "serie", "cine"] },
+  "conversacion":   { "nombre": "Conversación",   "icono": "conversacion",   "emoji": "❞",  "atajos": ["v", "conversacion", "conversación", "dicho", "escuchado"] },
+  "propia":         { "nombre": "Propia",         "icono": "propia",         "emoji": "✎",  "atajos": ["y", "propia", "mia", "mía", "yo"] },
+  "sin-clasificar": { "nombre": "Sin clasificar", "icono": "sin-clasificar", "emoji": "○",  "atajos": ["sin", "inbox", "?"] }
 }

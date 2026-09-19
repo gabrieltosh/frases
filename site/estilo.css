@@ -2,17 +2,14 @@
   --papel: #efe9de;
   --hoja: #fdfbf5;
   --hoja-borde: #e6ddcc;
-  --hoja-canto: #d9cfbb;
   --tinta: #221f1a;
   --tinta-suave: #6b6357;
   --tinta-tenue: #9d9483;
   --acento: #8a5a3b;
   --acento-suave: #f2e8dd;
-  --reverso: #f3ece0;
   --velo: rgba(34, 31, 26, .35);
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
   --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
-  --curva: cubic-bezier(.33, .01, .2, 1);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,13 +22,11 @@
     --papel: #121108;
     --hoja: #1d1b14;
     --hoja-borde: #302c22;
-    --hoja-canto: #2a2720;
     --tinta: #eee9dd;
     --tinta-suave: #a69d8d;
     --tinta-tenue: #6e675b;
     --acento: #d7a077;
     --acento-suave: #2d2519;
-    --reverso: #191710;
     --velo: rgba(0, 0, 0, .6);
   }
 }
@@ -40,13 +35,11 @@
   --papel: #121108;
   --hoja: #1d1b14;
   --hoja-borde: #302c22;
-  --hoja-canto: #2a2720;
   --tinta: #eee9dd;
   --tinta-suave: #a69d8d;
   --tinta-tenue: #6e675b;
   --acento: #d7a077;
   --acento-suave: #2d2519;
-  --reverso: #191710;
   --velo: rgba(0, 0, 0, .6);
 }
 
@@ -58,7 +51,6 @@ body {
   margin: 0;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
-  gap: 0;
   background:
     radial-gradient(120% 90% at 50% -10%, color-mix(in srgb, var(--hoja) 35%, transparent), transparent 60%),
     var(--papel);
@@ -69,14 +61,25 @@ body {
   overflow: hidden;
 }
 
+.sprite { display: none; }
+
+.i {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+  vertical-align: -.2em;
+  color: inherit;
+}
+
 /* Sin JavaScript el libro se convierte en una lista corrida y todo sigue legible. */
 .sin-js body { overflow: auto; display: block; }
 .sin-js .escenario { display: block; }
-.sin-js .pasar, .sin-js .marcador, .sin-js .indice, .sin-js .canto { display: none; }
-.sin-js .libro { height: auto; }
-.sin-js .pagina { position: static; margin: 0 auto 1rem; }
+.sin-js .pasar, .sin-js .marcador, .sin-js .indice { display: none; }
+.sin-js .libro, .sin-js .libro-caja { height: auto; width: auto; }
+.sin-js .pagina { margin: 0 auto 1rem; max-width: 38rem; }
 .sin-js .hoja { min-height: 0; }
 .sin-js .fantasma { visibility: visible !important; }
+.sin-js .escrito { display: none; }
 
 /* ---------- barra ---------- */
 
@@ -92,7 +95,6 @@ body {
   font-family: var(--serif);
   font-size: 1.35rem;
   font-weight: 400;
-  letter-spacing: .01em;
   margin: 0;
 }
 
@@ -107,19 +109,19 @@ body {
   border-radius: 999px;
   background: var(--hoja);
   color: var(--tinta-suave);
-  font: inherit;
-  font-size: .9rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: color .15s, border-color .15s;
 }
 
 .icono:hover { color: var(--tinta); border-color: var(--tinta-tenue); }
+.icono .i { vertical-align: 0; }
 
 /* ---------- filtros ---------- */
 
 .filtros {
   display: flex;
-  gap: .35rem;
+  gap: .3rem;
   padding: .5rem clamp(1rem, 4vw, 2rem) .75rem;
   overflow-x: auto;
   scrollbar-width: none;
@@ -129,9 +131,12 @@ body {
 
 .pildora {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
   font: inherit;
   font-size: .78rem;
-  padding: .28rem .7rem;
+  padding: .3rem .7rem;
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
@@ -149,59 +154,40 @@ body {
   color: var(--acento);
 }
 
-.pildora .cuenta { opacity: .5; margin-left: .3rem; font-variant-numeric: tabular-nums; }
+.pildora .cuenta { opacity: .5; font-variant-numeric: tabular-nums; }
 
 /* ---------- el libro ---------- */
 
 .escenario {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(.25rem, 2vw, 1.5rem);
+  gap: clamp(.25rem, 2vw, 1.25rem);
   min-height: 0;
-  padding: .5rem clamp(.5rem, 3vw, 2rem) 0;
-  perspective: 2400px;
-  perspective-origin: 50% 45%;
+  padding: .5rem clamp(.5rem, 3vw, 2rem) .5rem;
 }
 
-.libro {
+.libro-caja {
   position: relative;
-  width: min(38rem, 100%);
-  height: min(100%, 34rem);
-  transform-style: preserve-3d;
+  width: min(34rem, 100%);
+  height: 100%;
+  max-height: 34rem;
 }
 
-/* El canto: unas hojas apiladas detrás para que el libro tenga cuerpo. */
-.canto {
-  position: absolute;
-  inset: 0;
-  border-radius: .3rem 1rem 1rem .3rem;
-  background: var(--hoja-canto);
-  transform: translate(6px, 7px);
-  box-shadow: 10px 12px 26px -14px var(--velo);
+.libro { width: 100%; height: 100%; }
+
+/* StPageFlip decide «una sola hoja» comparando el ancho con minWidth, y de paso
+   escribe ese minWidth en el elemento. Se le da un minWidth enorme para que
+   nunca abra a doble página, y aquí se le devuelve su tamaño real. */
+.libro.stf__parent {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 0 !important;
 }
 
-.canto::before, .canto::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: color-mix(in srgb, var(--hoja) 65%, var(--hoja-canto));
-  border: 1px solid var(--hoja-borde);
-}
-
-.canto::before { transform: translate(-4px, -4px); }
-.canto::after  { transform: translate(-2px, -2px); }
-
-.paginas { position: relative; height: 100%; }
-
-.pagina {
-  position: absolute;
-  inset: 0;
-  visibility: hidden;
-}
-
-.pagina.activa { visibility: visible; }
+/* StPageFlip coloca cada .pagina; aquí sólo se viste la hoja. */
+.pagina { background: transparent; }
 
 .hoja {
   position: relative;
@@ -209,23 +195,20 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(1.75rem, 5vw, 3.25rem) clamp(1.5rem, 5vw, 3.5rem);
+  padding: clamp(1.6rem, 4.5vw, 3rem) clamp(1.4rem, 4.5vw, 3.2rem);
   border: 1px solid var(--hoja-borde);
-  border-radius: .3rem 1rem 1rem .3rem;
+  border-radius: .2rem .7rem .7rem .2rem;
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--hoja-canto) 55%, var(--hoja)) 0, var(--hoja) 3.5%, var(--hoja) 100%),
+    linear-gradient(90deg, color-mix(in srgb, var(--hoja-borde) 55%, var(--hoja)) 0, var(--hoja) 3%, var(--hoja) 100%),
     var(--hoja);
-  box-shadow: 0 1px 1px rgba(0, 0, 0, .04), 0 18px 40px -28px var(--velo);
   overflow: hidden;
 }
 
 .hoja::after {
-  /* grano de papel */
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border-radius: inherit;
   opacity: .35;
   background-image:
     repeating-linear-gradient(0deg, transparent 0 5px, color-mix(in srgb, var(--tinta) 1.5%, transparent) 5px 6px);
@@ -236,8 +219,11 @@ body {
 :root[data-tema="oscuro"] .hoja::after { mix-blend-mode: screen; opacity: .25; }
 
 .rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
   font-size: .68rem;
-  letter-spacing: .14em;
+  letter-spacing: .12em;
   text-transform: uppercase;
   color: var(--acento);
   margin: 0 0 auto;
@@ -245,25 +231,21 @@ body {
 
 .cita {
   position: relative;
-  margin: 1.25rem 0;
+  margin: 1.2rem 0;
   font-family: var(--serif);
-  font-size: clamp(1.15rem, 1rem + 1.3vw, 1.75rem);
+  font-size: clamp(1.15rem, 1rem + 1.2vw, 1.7rem);
   line-height: 1.5;
   letter-spacing: -.008em;
   white-space: pre-wrap;
   text-wrap: pretty;
 }
 
-.pagina[data-largo="larga"] .cita { font-size: clamp(1rem, .9rem + .75vw, 1.28rem); line-height: 1.6; }
-.pagina[data-largo="corta"] .cita { font-size: clamp(1.35rem, 1.05rem + 2vw, 2.2rem); }
+.pagina[data-largo="larga"] .cita { font-size: clamp(1rem, .9rem + .7vw, 1.22rem); line-height: 1.6; }
+.pagina[data-largo="corta"] .cita { font-size: clamp(1.3rem, 1.05rem + 1.8vw, 2.1rem); }
 
 /* El texto completo, invisible, reserva el sitio para que al escribirse nada salte. */
 .fantasma { visibility: hidden; }
-
-.escrito {
-  position: absolute;
-  inset: 0;
-}
+.escrito { position: absolute; inset: 0; }
 
 .escrito::after {
   content: '';
@@ -277,12 +259,13 @@ body {
 }
 
 .escrito.listo::after { animation: none; opacity: 0; }
+.escrito:empty::after { opacity: 0; }
 
 @keyframes latir { 50% { opacity: 0; } }
 
 .atribucion {
   margin: 0;
-  font-size: clamp(.85rem, .8rem + .2vw, .98rem);
+  font-size: clamp(.85rem, .8rem + .2vw, .95rem);
   color: var(--tinta-suave);
   font-style: italic;
   opacity: 0;
@@ -296,7 +279,7 @@ body {
   align-items: baseline;
   gap: .5rem;
   margin-top: auto;
-  padding-top: 1.1rem;
+  padding-top: 1rem;
   font-size: .72rem;
   color: var(--tinta-tenue);
   opacity: 0;
@@ -305,8 +288,7 @@ body {
 
 .pie time { margin-left: auto; font-variant-numeric: tabular-nums; }
 
-.revelada .atribucion,
-.revelada .pie { opacity: 1; }
+.revelada .atribucion, .revelada .pie { opacity: 1; }
 
 .sin-resultados {
   position: absolute;
@@ -323,41 +305,10 @@ body {
 .sin-resultados[hidden] { display: none; }
 .sin-resultados span { font-size: .85rem; }
 
-/* ---------- la hoja que gira ---------- */
-
-.volando {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  will-change: transform;
-  z-index: 3;
-  pointer-events: none;
-}
-
-.volando .cara {
-  position: absolute;
-  inset: 0;
-  /* El backface no es fiable dentro de la hoja (overflow + capas), así que además
-     cada cara se apaga por animación justo al cruzar los 90°. */
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(.1px);
-}
-
-.volando .reverso { transform: rotateY(180deg) translateZ(.1px); }
-.volando .reverso .hoja { background: var(--reverso); border-radius: 1rem .3rem .3rem 1rem; }
-
-/* La sombra que barre la hoja mientras gira. */
-.volando .sombra {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: 0;
-}
-
-.volando .anverso .sombra { background: linear-gradient(90deg, rgba(0,0,0,.45), rgba(0,0,0,0) 55%); }
-.volando .reverso .sombra { background: linear-gradient(270deg, rgba(0,0,0,.45), rgba(0,0,0,0) 55%); }
+/* Si la librería del libro no cargara, queda una hoja simple que cambia. */
+.sin-libreria .libro { display: grid; }
+.sin-libreria .pagina { height: 100%; }
+.sin-libreria .pagina[hidden] { display: none; }
 
 /* ---------- pasar página ---------- */
 
@@ -365,20 +316,21 @@ body {
   flex: none;
   width: 2.6rem;
   height: 2.6rem;
+  display: grid;
+  place-items: center;
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
   color: var(--tinta-tenue);
-  font-size: 1.6rem;
-  line-height: 1;
   cursor: pointer;
   transition: color .15s, background .15s, transform .15s;
 }
 
+.pasar .i { width: 1.4rem; height: 1.4rem; }
 .pasar:hover:not(:disabled) { color: var(--tinta); background: color-mix(in srgb, var(--hoja) 70%, transparent); }
 .pasar.atras:hover:not(:disabled) { transform: translateX(-2px); }
 .pasar.adelante:hover:not(:disabled) { transform: translateX(2px); }
-.pasar:disabled { opacity: .25; cursor: default; }
+.pasar:disabled { opacity: .22; cursor: default; }
 
 /* ---------- marcador ---------- */
 
@@ -387,7 +339,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: .9rem clamp(1rem, 4vw, 2rem) .25rem;
+  padding: .75rem clamp(1rem, 4vw, 2rem) .25rem;
   font-size: .8rem;
   color: var(--tinta-tenue);
 }
@@ -397,6 +349,9 @@ body {
 .folio-sep { opacity: .45; }
 
 .texto-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
   font: inherit;
   font-size: .8rem;
   padding: .3rem .1rem;
@@ -404,14 +359,13 @@ body {
   background: none;
   color: var(--tinta-tenue);
   cursor: pointer;
-  border-bottom: 1px solid transparent;
 }
 
-.texto-boton:hover { color: var(--tinta); border-bottom-color: var(--tinta-tenue); }
+.texto-boton:hover { color: var(--tinta); }
 
 .creditos {
   margin: 0;
-  padding: .1rem 1rem 1rem;
+  padding: .1rem 1rem .9rem;
   text-align: center;
   font-size: .7rem;
   color: color-mix(in srgb, var(--tinta-tenue) 70%, transparent);
@@ -444,7 +398,7 @@ body {
   border-bottom: 0;
   border-radius: 1rem 1rem 0 0;
   box-shadow: 0 -20px 60px -30px var(--velo);
-  animation: subir .28s var(--curva);
+  animation: subir .28s cubic-bezier(.33, .01, .2, 1);
 }
 
 @keyframes subir { from { transform: translateY(14px); opacity: .4; } }
@@ -456,19 +410,31 @@ body {
   border-bottom: 1px solid var(--hoja-borde);
 }
 
-.indice-cabecera input {
+.campo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .5rem .8rem;
+  border: 1px solid var(--hoja-borde);
+  border-radius: .6rem;
+  background: var(--hoja);
+  color: var(--tinta-tenue);
+}
+
+.campo:focus-within { outline: 2px solid var(--acento); outline-offset: -1px; }
+
+.campo input {
   flex: 1;
   min-width: 0;
   font: inherit;
   font-size: 1rem;
-  padding: .55rem .85rem;
-  border: 1px solid var(--hoja-borde);
-  border-radius: .6rem;
-  background: var(--hoja);
+  border: 0;
+  background: none;
   color: var(--tinta);
 }
 
-.indice-cabecera input:focus { outline: 2px solid var(--acento); outline-offset: -1px; }
+.campo input:focus { outline: none; }
 
 .indice-lista {
   overflow-y: auto;
@@ -494,7 +460,6 @@ body {
 .ficha:hover { border-color: var(--acento); transform: translateY(-1px); }
 
 .ficha q {
-  display: block;
   font-family: var(--serif);
   font-size: .95rem;
   line-height: 1.45;
@@ -506,23 +471,24 @@ body {
 }
 
 .ficha .meta {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
   margin-top: .5rem;
   font-size: .72rem;
   color: var(--tinta-tenue);
 }
 
-.ficha .meta .categoria { color: var(--acento); }
+.ficha .meta .categoria { display: inline-flex; align-items: center; gap: .3rem; color: var(--acento); }
 
 .indice-vacio { text-align: center; color: var(--tinta-tenue); padding: 2rem; font-size: .9rem; }
 
 @media (max-width: 640px) {
-  /* En pantalla chica las flechas se apoyan sobre el pie del libro. */
-  .escenario { padding-inline: .75rem; position: relative; }
-  .pasar { position: absolute; bottom: 0; z-index: 4; }
-  .pasar.atras { left: .5rem; }
-  .pasar.adelante { right: .5rem; }
-  .libro { height: min(100%, 30rem); }
+  .escenario { padding-inline: .5rem; }
+  .pasar { position: absolute; bottom: .25rem; z-index: 4; }
+  .pasar.atras { left: .25rem; }
+  .pasar.adelante { right: .25rem; }
+  .libro-caja { max-height: 30rem; }
   .marcador { justify-content: center; }
   .marcador .texto-boton:first-child { position: absolute; left: clamp(1rem, 4vw, 2rem); }
   .marcador .texto-boton:last-child { position: absolute; right: clamp(1rem, 4vw, 2rem); }

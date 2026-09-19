@@ -8,46 +8,50 @@
 <meta property="og:title" content="{{TITULO}}">
 <meta property="og:description" content="{{DESCRIPCION}}">
 <meta property="og:type" content="website">
-<meta name="theme-color" content="#f7f4ee" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#16150f" media="(prefers-color-scheme: dark)">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❞</text></svg>">
+<meta name="theme-color" content="#efe9de" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121108" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a5a3b' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 6.5v13'/><path d='M12 6.5C10.5 5 8.5 4.5 3.5 4.5v12.8c5 0 7 .5 8.5 2 1.5-1.5 3.5-2 8.5-2V4.5c-5 0-7 .5-8.5 2Z'/></svg>">
 <style>{{ESTILO}}</style>
 </head>
 <body>
 
+{{SPRITE}}
+
 <header class="barra">
   <h1>{{TITULO}}</h1>
   <div class="barra-acciones">
-    <button class="icono" type="button" data-accion="indice" aria-label="Abrir el índice" title="Índice (I)">☰</button>
-    <button class="icono" type="button" data-accion="tema" aria-label="Cambiar tema" title="Tema">◐</button>
+    <button class="icono" type="button" data-accion="indice" aria-label="Abrir el índice" title="Índice (I)"><svg class="i" aria-hidden="true"><use href="#i-indice"/></svg></button>
+    <button class="icono" type="button" data-accion="tema" aria-label="Cambiar tema" title="Tema"><svg class="i" aria-hidden="true"><use href="#i-tema"/></svg></button>
   </div>
 </header>
 
 <nav class="filtros" aria-label="Filtrar por categoría">{{FILTROS}}</nav>
 
 <main class="escenario">
-  <button class="pasar atras" type="button" aria-label="Página anterior">‹</button>
+  <button class="pasar atras" type="button" aria-label="Página anterior"><svg class="i" aria-hidden="true"><use href="#i-anterior"/></svg></button>
 
-  <div class="libro" id="libro">
-    <div class="canto" aria-hidden="true"></div>
-    <div class="paginas">{{PAGINAS}}</div>
+  <div class="libro-caja">
+    <div class="libro" id="libro">{{PAGINAS}}</div>
     <p class="sin-resultados" hidden>Ninguna frase por aquí.<br><span>Prueba con otra categoría.</span></p>
   </div>
 
-  <button class="pasar adelante" type="button" aria-label="Página siguiente">›</button>
+  <button class="pasar adelante" type="button" aria-label="Página siguiente"><svg class="i" aria-hidden="true"><use href="#i-siguiente"/></svg></button>
 </main>
 
 <footer class="marcador">
-  <button class="texto-boton" type="button" data-accion="azar">Al azar</button>
+  <button class="texto-boton" type="button" data-accion="azar"><svg class="i" aria-hidden="true"><use href="#i-azar"/></svg> Al azar</button>
   <span class="folio" aria-live="polite"><b class="folio-actual">1</b> <span class="folio-sep">/</span> <span class="folio-total">{{TOTAL}}</span></span>
-  <button class="texto-boton" type="button" data-accion="indice">Índice</button>
+  <button class="texto-boton" type="button" data-accion="indice"><svg class="i" aria-hidden="true"><use href="#i-indice"/></svg> Índice</button>
 </footer>
 
 <div class="indice" hidden>
   <div class="indice-caja" role="dialog" aria-modal="true" aria-label="Índice de frases">
     <div class="indice-cabecera">
-      <input id="buscar" type="search" placeholder="Buscar una palabra, un autor…" autocomplete="off" aria-label="Buscar">
-      <button class="icono" type="button" data-accion="cerrar-indice" aria-label="Cerrar índice">✕</button>
+      <label class="campo">
+        <svg class="i" aria-hidden="true"><use href="#i-buscar"/></svg>
+        <input id="buscar" type="search" placeholder="Buscar una palabra, un autor…" autocomplete="off" aria-label="Buscar">
+      </label>
+      <button class="icono" type="button" data-accion="cerrar-indice" aria-label="Cerrar índice"><svg class="i" aria-hidden="true"><use href="#i-cerrar"/></svg></button>
     </div>
     <div class="indice-lista">{{INDICE}}</div>
     <p class="indice-vacio" hidden>Nada coincide.</p>
@@ -56,6 +60,8 @@
 
 <p class="creditos">{{TOTALTEXTO}} · actualizado el {{ACTUALIZADO}}</p>
 
+<!-- StPageFlip 2.0.7 · MIT · https://github.com/Nodlik/StPageFlip -->
+<script>{{LIBRERIA}}</script>
 <script>{{APP}}</script>
 </body>
 </html>

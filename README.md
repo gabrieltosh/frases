@@ -4,8 +4,8 @@ Colección personal de frases, párrafos y líneas sueltas que vale la pena no o
 Se captura desde el celular por Telegram, se guarda como texto plano en este repo y
 se publica sola como sitio estático en GitHub Pages.
 
-El sitio se lee como un libro: una frase por hoja, la frase se escribe sola al llegar
-y las hojas giran al pasar de página.
+El sitio se lee como un libro: una frase por hoja, la hoja se dobla como papel al
+pasarla y la frase se escribe sola al aterrizar.
 
 ```
 frases/<categoría>/<fecha>-<slug>.md   una frase por archivo, texto plano
@@ -50,8 +50,9 @@ Flags opcionales que mandan sobre el texto: `--cat`, `--autor`, `--fuente`, `--t
 
 ## Cómo se lee el sitio
 
-Una frase por hoja. Se pasa de página con las flechas, deslizando el dedo, o tocando
-el tercio izquierdo o derecho de la hoja.
+Una frase por hoja. Se pasa de página arrastrando la esquina con el dedo o el mouse
+(la hoja se curva y sigue el puntero), tocando el lado derecho o izquierdo, o con las
+flechas. Al pasar el mouse por una esquina, se dobla un poco para invitar.
 
 | Tecla | |
 |---|---|
@@ -71,8 +72,19 @@ y se sigue leyendo entero. Con `prefers-reduced-motion` no hay giro ni tecleo.
 ### Retocar el aspecto
 
 - [site/estilo.css](site/estilo.css) — colores (los tokens de `:root`), tipografías, tamaño de la hoja.
-- [site/app.js](site/app.js) — velocidad del tecleo (`base`, tope de 2,4 s) y del giro (`duracion`, 640 ms).
+- [site/iconos.svg](site/iconos.svg) — el sprite de iconos; se referencian con `<use href="#i-…">`.
+  Para estrenar una categoría, se agrega un `<symbol id="i-loquesea">` y se apunta a él
+  desde `categorias.json` con `"icono": "loquesea"`.
+- [site/app.js](site/app.js) — velocidad del tecleo (`base`, tope de 2,4 s) y del giro
+  (`flippingTime`), sombras del papel (`maxShadowOpacity`) y esquinas (`showPageCorners`).
 - [site/plantilla.html](site/plantilla.html) — la estructura de la página.
+
+### De dónde sale cada cosa
+
+El giro de las hojas lo hace [StPageFlip](https://github.com/Nodlik/StPageFlip) (MIT), que
+va versionada en [site/vendor/](site/vendor) y se incrusta en el HTML durante el build: el
+sitio es un único archivo y no depende de ningún CDN. Si por lo que sea no cargara, el libro
+sigue funcionando sin el giro. Los iconos son SVG propios en el sprite, sin fuentes externas.
 
 ## Ver el sitio localmente
 
