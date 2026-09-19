@@ -135,6 +135,31 @@
 
     flip.loadFromHTML(activas);
     flip.on('flip', (e) => { posicion = Number(e.data) || 0; alLlegar(); });
+    vigilarDorsos();
+  }
+
+  /**
+   * Para dibujar la cara de atrás de una hoja, StPageFlip clona la página entera y
+   * la recorta en diagonal, así que el dorso salía con el texto del derecho. Los
+   * clones no están en `todas`, y en cuanto aparecen se dejan en blanco: papel.
+   */
+  let vigilante = null;
+
+  function vigilarDorsos() {
+    const bloque = libro.querySelector('.stf__block');
+    if (!bloque || vigilante) return;
+
+    vigilante = new MutationObserver((cambios) => {
+      for (const cambio of cambios) {
+        for (const nodo of cambio.addedNodes) {
+          if (nodo.nodeType === 1 && nodo.classList.contains('pagina') && !todas.includes(nodo)) {
+            nodo.classList.add('dorso');
+          }
+        }
+      }
+    });
+
+    vigilante.observe(bloque, { childList: true });
   }
 
   function irA(destino, { animado = true } = {}) {

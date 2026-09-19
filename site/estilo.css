@@ -1,6 +1,7 @@
 :root {
   --papel: #efe9de;
   --hoja: #fdfbf5;
+  --dorso: #f6f1e6;
   --hoja-borde: #e6ddcc;
   --tinta: #221f1a;
   --tinta-suave: #6b6357;
@@ -21,6 +22,7 @@
   :root:not([data-tema="claro"]) {
     --papel: #121108;
     --hoja: #1d1b14;
+    --dorso: #191711;
     --hoja-borde: #302c22;
     --tinta: #eee9dd;
     --tinta-suave: #a69d8d;
@@ -34,6 +36,7 @@
 :root[data-tema="oscuro"] {
   --papel: #121108;
   --hoja: #1d1b14;
+  --dorso: #191711;
   --hoja-borde: #302c22;
   --tinta: #eee9dd;
   --tinta-suave: #a69d8d;
@@ -304,6 +307,14 @@ body {
 
 .sin-resultados[hidden] { display: none; }
 .sin-resultados span { font-size: .85rem; }
+
+/* El dorso de la hoja: papel liso. Lo que lleva escrito es asunto del derecho. */
+.pagina.dorso .hoja {
+  background: var(--dorso);
+  border-color: color-mix(in srgb, var(--hoja-borde) 70%, var(--dorso));
+}
+
+.pagina.dorso .hoja > * { visibility: hidden; }
 
 /* Si la librería del libro no cargara, queda una hoja simple que cambia. */
 .sin-libreria .libro { display: grid; }
