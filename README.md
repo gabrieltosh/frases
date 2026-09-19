@@ -36,8 +36,26 @@ el que va en el secreto `TELEGRAM_USER_ID`).
 
 `reflexion` · `cancion` · `libro` · `pelicula` · `conversacion` · `propia` · `sin-clasificar`
 
-Cada una acepta atajos (`#musica`, `#letra` y `#c` van a *canción*). Se editan en
-[categorias.json](categorias.json); agregar una categoría nueva es añadir una línea ahí.
+Cada una acepta atajos (`#musica`, `#letra` y `#c` van a *canción*). Todas se definen en
+[categorias.json](categorias.json):
+
+```json
+"conversacion": {
+  "nombre": "Conversación",
+  "icono": "conversacion",
+  "emoji": "❞",
+  "atajos": ["v", "conversacion", "conversación", "dicho", "escuchado"]
+}
+```
+
+La clave (`conversacion`) es el hashtag y también la carpeta dentro de `frases/`; `nombre` es
+lo que se ve en el libro; `icono` apunta a un `<symbol id="i-…">` de [site/iconos.svg](site/iconos.svg);
+`emoji` sólo lo usa el bot al responder por Telegram; `atajos` son otros hashtags que llevan
+a la misma categoría. El orden del archivo es el orden de las píldoras del sitio.
+
+Para estrenar una categoría: se añade el bloque, se dibuja su `<symbol>` en el sprite y se
+hace commit. El hashtag funciona enseguida y la carpeta se crea sola con la primera frase.
+Si falta el símbolo, el build avisa por consola y pone el icono genérico en su lugar.
 
 ## Capturar desde la computadora
 

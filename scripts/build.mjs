@@ -8,9 +8,21 @@ const DIST = path.join(RAIZ, 'dist');
 const TITULO = process.env.SITIO_TITULO || 'Frases';
 const SUBTITULO = process.env.SITIO_SUBTITULO || 'Lo que valía la pena no olvidar.';
 
-/** Cada icono vive una sola vez en el sprite y se referencia con <use>. */
-const icono = (nombre, clase = 'i') =>
-  `<svg class="${clase}" aria-hidden="true"><use href="#i-${nombre}"/></svg>`;
+const sprite = fs.readFileSync(path.join(SITIO, 'iconos.svg'), 'utf8');
+const DIBUJADOS = new Set([...sprite.matchAll(/id="i-([a-z-]+)"/g)].map((m) => m[1]));
+
+/**
+ * Cada icono vive una sola vez en el sprite y se referencia con <use>.
+ * Si falta, el <use> no dibujaría nada y no habría forma de notarlo: mejor
+ * avisar y poner el genérico.
+ */
+const icono = (nombre, clase = 'i') => {
+  if (!DIBUJADOS.has(nombre)) {
+    console.warn(`  ⚠ no hay ningún <symbol id="i-${nombre}"> en site/iconos.svg`);
+    nombre = 'sin-clasificar';
+  }
+  return `<svg class="${clase}" aria-hidden="true"><use href="#i-${nombre}"/></svg>`;
+};
 
 const escapar = (t) =>
   String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -84,7 +96,7 @@ const html = [
   ['{{INDICE}}', indice],
   ['{{TOTALTEXTO}}', frases.length === 1 ? '1 frase' : `${frases.length} frases`],
   ['{{ACTUALIZADO}}', fechaLarga(hoyLocal())],
-  ['{{SPRITE}}', leer('iconos.svg').trim()],
+  ['{{SPRITE}}', sprite.trim()],
   ['{{ESTILO}}', [leer('vendor', 'page-flip.css'), leer('estilo.css')].join('\n')],
   ['{{LIBRERIA}}', libreria],
   ['{{APP}}', leer('app.js')],
