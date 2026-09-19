@@ -38,6 +38,8 @@ const AYUDA = [
   '',
   'Categorías: ' + Object.keys(CATEGORIAS).filter((c) => c !== 'sin-clasificar').join(', '),
   'Sin #categoría va a «sin clasificar» y la ordenas después desde el sitio.',
+  '',
+  'Otros comandos: /cuantas (el recuento) y /id (tu número de usuario).',
 ].join('\n');
 
 const estado = fs.existsSync(ESTADO)
@@ -66,6 +68,15 @@ for (const update of updates) {
 
   if (/^\/(start|ayuda|help)/.test(texto)) {
     await responder(msg.chat.id, AYUDA);
+    continue;
+  }
+
+  // Para configurar TELEGRAM_USER_ID sin andar persiguiendo getUpdates.
+  if (/^\/(id|quiensoy)/.test(texto)) {
+    await responder(
+      msg.chat.id,
+      `Tu ID de usuario es ${msg.from.id}\n\nEse es el número que va en el secreto TELEGRAM_USER_ID del repo.`
+    );
     continue;
   }
 

@@ -29,7 +29,8 @@ Texto de la frase, puede ocupar varias líneas.
 - La línea que empieza con `—` (o `-`) es la atribución: `Autor, Fuente`.
 - Sin `#categoría` la frase cae en **sin clasificar**, y la ordenas después.
 
-Comandos del bot: `/ayuda` y `/cuantas`.
+Comandos del bot: `/ayuda`, `/cuantas` (el recuento) y `/id` (tu número de usuario,
+el que va en el secreto `TELEGRAM_USER_ID`).
 
 ### Categorías
 
@@ -96,8 +97,9 @@ npm run serve
 
 1. **Crear el bot.** En Telegram, habla con [@BotFather](https://t.me/BotFather) → `/newbot`.
    Guarda el token que te da.
-2. **Averiguar tu ID de usuario.** Habla con [@userinfobot](https://t.me/userinfobot); te
-   responde un número. Sirve para que el bot ignore a cualquier otra persona que lo encuentre.
+2. **Averiguar tu ID de usuario.** Mándale `/id` al propio bot: te responde con tu número.
+   Sirve para que ignore a cualquier otra persona que lo encuentre. (Mientras el secreto
+   esté vacío el bot atiende a cualquiera, así que conviene no dejarlo para mañana.)
 3. **Subir el repo a GitHub** (público) y cargar los dos secretos en
    *Settings → Secrets and variables → Actions*:
    - `TELEGRAM_BOT_TOKEN`
