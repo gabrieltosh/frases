@@ -4,6 +4,9 @@ Colección personal de frases, párrafos y líneas sueltas que vale la pena no o
 Se captura desde el celular por Telegram, se guarda como texto plano en este repo y
 se publica sola como sitio estático en GitHub Pages.
 
+El sitio se lee como un libro: una frase por hoja, la frase se escribe sola al llegar
+y las hojas giran al pasar de página.
+
 ```
 frases/<categoría>/<fecha>-<slug>.md   una frase por archivo, texto plano
 categorias.json                        las categorías y sus atajos
@@ -45,10 +48,36 @@ npm run nueva -- "La frase
 
 Flags opcionales que mandan sobre el texto: `--cat`, `--autor`, `--fuente`, `--tags a,b`.
 
+## Cómo se lee el sitio
+
+Una frase por hoja. Se pasa de página con las flechas, deslizando el dedo, o tocando
+el tercio izquierdo o derecho de la hoja.
+
+| Tecla | |
+|---|---|
+| `→` `espacio` | siguiente |
+| `←` | anterior |
+| `Inicio` / `Fin` | primera / última |
+| `R` | una al azar |
+| `I` o `/` | abrir el índice (ahí está la búsqueda) |
+| `Esc` | cerrar el índice |
+
+Las píldoras de arriba filtran por categoría; el libro se re-pagina al vuelo. La página
+que estás leyendo queda en la URL, así que compartir una frase es copiar el enlace.
+
+Todo el contenido va en el HTML: sin JavaScript el libro se convierte en una lista corrida
+y se sigue leyendo entero. Con `prefers-reduced-motion` no hay giro ni tecleo.
+
+### Retocar el aspecto
+
+- [site/estilo.css](site/estilo.css) — colores (los tokens de `:root`), tipografías, tamaño de la hoja.
+- [site/app.js](site/app.js) — velocidad del tecleo (`base`, tope de 2,4 s) y del giro (`duracion`, 640 ms).
+- [site/plantilla.html](site/plantilla.html) — la estructura de la página.
+
 ## Ver el sitio localmente
 
 ```bash
-npm run build && python3 -m http.server 4173 --directory dist
+npm run serve
 ```
 
 ## Puesta en marcha (una sola vez)

@@ -8,7 +8,9 @@
     "build": "node scripts/build.mjs",
     "nueva": "node scripts/nueva.mjs",
     "sync": "node scripts/telegram-sync.mjs",
-    "serve": "node scripts/build.mjs && node --run-serve 2>/dev/null || python3 -m http.server 4173 --directory dist"
+    "serve": "node scripts/build.mjs && python3 -m http.server 4173 --directory dist"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  }
 }

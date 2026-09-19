@@ -1,40 +1,60 @@
 <!doctype html>
-<html lang="es" data-tema="">
+<html lang="es" class="sin-js" data-tema="">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{{TITULO}}</title>
 <meta name="description" content="{{DESCRIPCION}}">
 <meta property="og:title" content="{{TITULO}}">
 <meta property="og:description" content="{{DESCRIPCION}}">
 <meta property="og:type" content="website">
+<meta name="theme-color" content="#f7f4ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16150f" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❞</text></svg>">
 <style>{{ESTILO}}</style>
 </head>
 <body>
-<button class="tema" type="button" aria-label="Cambiar tema">◐</button>
 
-<div class="envoltura">
-  <header class="cabecera">
-    <h1>{{TITULO}}</h1>
-    <p>{{SUBTITULO}}</p>
-  </header>
+<header class="barra">
+  <h1>{{TITULO}}</h1>
+  <div class="barra-acciones">
+    <button class="icono" type="button" data-accion="indice" aria-label="Abrir el índice" title="Índice (I)">☰</button>
+    <button class="icono" type="button" data-accion="tema" aria-label="Cambiar tema" title="Tema">◐</button>
+  </div>
+</header>
 
-  <div class="controles">
-    <div class="buscador">
-      <input id="buscar" type="search" placeholder="Buscar una palabra, un autor…" autocomplete="off" aria-label="Buscar">
-      <button class="azar" type="button">Al azar</button>
-    </div>
-    <div class="filtros" role="group" aria-label="Filtrar por categoría">{{FILTROS}}</div>
+<nav class="filtros" aria-label="Filtrar por categoría">{{FILTROS}}</nav>
+
+<main class="escenario">
+  <button class="pasar atras" type="button" aria-label="Página anterior">‹</button>
+
+  <div class="libro" id="libro">
+    <div class="canto" aria-hidden="true"></div>
+    <div class="paginas">{{PAGINAS}}</div>
+    <p class="sin-resultados" hidden>Ninguna frase por aquí.<br><span>Prueba con otra categoría.</span></p>
   </div>
 
-  <main class="lista">{{FRASES}}</main>
-  <p class="vacio" hidden>Nada por aquí todavía.</p>
+  <button class="pasar adelante" type="button" aria-label="Página siguiente">›</button>
+</main>
 
-  <footer class="creditos">
-    {{TOTAL}} · actualizado el {{ACTUALIZADO}}
-  </footer>
+<footer class="marcador">
+  <button class="texto-boton" type="button" data-accion="azar">Al azar</button>
+  <span class="folio" aria-live="polite"><b class="folio-actual">1</b> <span class="folio-sep">/</span> <span class="folio-total">{{TOTAL}}</span></span>
+  <button class="texto-boton" type="button" data-accion="indice">Índice</button>
+</footer>
+
+<div class="indice" hidden>
+  <div class="indice-caja" role="dialog" aria-modal="true" aria-label="Índice de frases">
+    <div class="indice-cabecera">
+      <input id="buscar" type="search" placeholder="Buscar una palabra, un autor…" autocomplete="off" aria-label="Buscar">
+      <button class="icono" type="button" data-accion="cerrar-indice" aria-label="Cerrar índice">✕</button>
+    </div>
+    <div class="indice-lista">{{INDICE}}</div>
+    <p class="indice-vacio" hidden>Nada coincide.</p>
+  </div>
 </div>
+
+<p class="creditos">{{TOTALTEXTO}} · actualizado el {{ACTUALIZADO}}</p>
 
 <script>{{APP}}</script>
 </body>
