@@ -36,6 +36,10 @@ jobs:
         env:
           TZ: America/La_Paz
       - uses: actions/configure-pages@v5
+        # enablement activa Pages por API en el primer despliegue: así no hace
+        # falta ir a Settings → Pages a mano.
+        with:
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
