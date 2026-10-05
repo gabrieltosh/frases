@@ -86,17 +86,12 @@ El interruptor «Animación» del menú (o `prefers-reduced-motion`) apaga el mo
 
 ### De dónde salen las frases
 
-La página las pide por `fetch`, en este orden (`DATA_URLS` en [site/index.html](site/index.html)):
-
-1. `http://104.248.224.152/frases.json`, el servidor.
-2. `frases.json` junto a la página: el que genera el build con las frases de este repo.
-3. Las frases de ejemplo incluidas en la propia página.
-
-GitHub Pages sirve el sitio por HTTPS y el navegador bloquea pedidos `http://` desde ahí,
-así que en Pages se usa el `frases.json` del build hasta que el servidor tenga HTTPS.
+El build las incrusta en la propia página (`FRASES` en [site/index.html](site/index.html)):
+no se publica un `frases.json` aparte, así que no hay una URL desde donde descargarlas en bloque.
+Si se abre `site/index.html` sin build, se ven las frases de ejemplo incluidas en la página.
 
 Cada frase admite `text`, `author`, `source`, `category`, `tags`, `date` y, opcionales,
-`img` y `video` (fondo de la escena; las rutas relativas se resuelven contra el JSON).
+`img` y `video` (fondo de la escena; las rutas relativas se resuelven contra la página).
 También entiende el formato del repo (`texto`, `autor`, `fuente`, `categoria`, `fecha`).
 
 ### Retocar el aspecto
