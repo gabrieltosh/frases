@@ -4,7 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'frases/**'
+      - 'data/frases.json'
+      - 'data/media/**'
       - 'site/**'
       - 'scripts/**'
       - 'categorias.json'

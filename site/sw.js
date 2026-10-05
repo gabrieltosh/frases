@@ -1,11 +1,12 @@
 /* Service worker de Frases.
-   La página trae las frases incrustadas, así que se pide primero a la red (para ver las nuevas)
-   y, sin conexión, se sirve la última copia guardada. El build reemplaza VERSION en cada cambio. */
+   La página y frases.json se piden primero a la red (para ver lo último) y, sin conexión,
+   se sirve la última copia guardada. El build reemplaza VERSION en cada cambio del sitio. */
 const VERSION = '{{VERSION}}';
 const CACHE = 'frases-' + VERSION;
 const FUENTES = 'frases-fuentes';
 const PRECARGA = [
   './',
+  'frases.json',
   'manifest.json',
   'icons/icon.svg',
   'icons/icon-192.png',
@@ -37,6 +38,16 @@ self.addEventListener('fetch', e => {
       fetch(req)
         .then(r => { if (r.ok) { const copia = r.clone(); caches.open(CACHE).then(c => c.put('./', copia)); } return r; })
         .catch(() => caches.match('./', { cacheName: CACHE }).then(r => r || caches.match('./')))
+    );
+    return;
+  }
+
+  // las frases: red primero, la última copia si no hay conexión
+  if (url.origin === self.location.origin && url.pathname.endsWith('/frases.json')) {
+    e.respondWith(
+      fetch(req)
+        .then(r => { if (r.ok) { const copia = r.clone(); caches.open(CACHE).then(c => c.put('frases.json', copia)); } return r; })
+        .catch(() => caches.match('frases.json'))
     );
     return;
   }

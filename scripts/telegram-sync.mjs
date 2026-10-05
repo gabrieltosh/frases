@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { CATEGORIAS, RAIZ, guardarFrase, hoyLocal, leerFrases } from './lib.mjs';
+import { CATEGORIAS, RAIZ, guardarFrase, hoyLocal, leerFrases, resolverCategoria } from './lib.mjs';
 import { parsearMensaje } from './parsear.mjs';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -29,7 +29,7 @@ const responder = (chat, texto) =>
   );
 
 const AYUDA = [
-  'Mándame una frase y la guardo en el repo.',
+  'Mándame una frase y la guardo en data/frases.json.',
   '',
   'Formato (todo opcional menos la frase):',
   '  Texto de la frase',
@@ -83,7 +83,10 @@ for (const update of updates) {
   if (/^\/(cuantas|stats)/.test(texto)) {
     const todas = leerFrases();
     const porCat = Object.entries(
-      todas.reduce((acc, f) => ({ ...acc, [f.categoria]: (acc[f.categoria] || 0) + 1 }), {})
+      todas.reduce((acc, f) => {
+        const c = resolverCategoria(f.category) || f.category || 'sin-clasificar';
+        return { ...acc, [c]: (acc[c] || 0) + 1 };
+      }, {})
     ).map(([c, n]) => `  ${CATEGORIAS[c]?.nombre || c}: ${n}`);
     await responder(msg.chat.id, `${todas.length} frases\n${porCat.join('\n')}`);
     continue;
@@ -95,12 +98,12 @@ for (const update of updates) {
     continue;
   }
 
-  const ruta = guardarFrase({
+  const nueva = guardarFrase({
     ...frase,
     fecha: hoyLocal(new Date(msg.date * 1000)),
   });
   guardadas++;
-  console.log(`+ ${ruta}`);
+  console.log(`+ #${nueva.id} ${nueva.category}`);
 
   const cat = CATEGORIAS[frase.categoria];
   await responder(

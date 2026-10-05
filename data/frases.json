@@ -1,0 +1,55 @@
+{
+  "frases": [
+    {
+      "id": 5,
+      "text": "Esta frase todavía no tiene categoría: así se ve una que capturaste de apuro.",
+      "category": "Sin clasificar",
+      "tags": [
+        "pendiente"
+      ],
+      "date": "2026-09-18"
+    },
+    {
+      "id": 4,
+      "text": "No es que tengamos poco tiempo, sino que perdemos mucho.",
+      "author": "Séneca",
+      "source": "Sobre la brevedad de la vida",
+      "category": "Reflexión",
+      "tags": [
+        "tiempo"
+      ],
+      "date": "2026-09-18"
+    },
+    {
+      "id": 3,
+      "text": "Caminante, no hay camino,\nse hace camino al andar.",
+      "author": "Antonio Machado",
+      "source": "Proverbios y cantares",
+      "category": "Reflexión",
+      "tags": [
+        "camino"
+      ],
+      "date": "2026-09-18"
+    },
+    {
+      "id": 2,
+      "text": "La vida sólo puede ser comprendida hacia atrás, pero debe ser vivida hacia adelante.",
+      "author": "Søren Kierkegaard",
+      "source": "Diarios",
+      "category": "Libro",
+      "tags": [
+        "tiempo"
+      ],
+      "date": "2026-09-18"
+    },
+    {
+      "id": 1,
+      "text": "El tiempo no cura nada, solo enseña a convivir.",
+      "author": "alguien",
+      "source": "el bus",
+      "category": "Conversación",
+      "tags": [],
+      "date": "2026-09-18"
+    }
+  ]
+}

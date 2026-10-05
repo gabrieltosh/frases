@@ -224,16 +224,13 @@ const root = document.documentElement;
 
 /* =====================================================================
    DATOS
-   Vienen incrustadas en la página: el build reemplaza FRASES con las del repo.
-   No hay un frases.json aparte que se pueda pedir.
+   Se piden a frases.json (copia de data/frases.json del repo) cada vez que se abre la página.
    Cada frase admite:  text, author, source, category, tags[], date, img, video
    (img y video son opcionales: rutas a las imágenes/videos generados)
    También se entiende el formato del repo: texto, autor, fuente, categoria, fecha.
    ===================================================================== */
 // clave de categorias.json → nombre visible; el build lo rellena con las categorías del repo
 const CAT_NOMBRES = /*{{CATEGORIAS}}*/{};
-// las frases del repo; el build las inyecta (sin build queda null y se usan las de DEFAULT)
-const FRASES = /*{{FRASES}}*/null;
 const DEFAULT = [
   { id:1, category:'Sin clasificar', text:'Esta frase todavía no tiene categoría: así se ve una que capturaste de apuro.', tags:['pendiente'], date:'2026-09-18' },
   { id:2, category:'Reflexión', text:'No es que tengamos poco tiempo, sino que perdemos mucho.', author:'Séneca', source:'Sobre la brevedad de la vida', tags:['tiempo'], date:'2026-09-18' },
@@ -277,17 +274,20 @@ function parseDate(v) {
 }
 const fmtDate = d => d ? d.toLocaleDateString('es', { day:'numeric', month:'long', year:'numeric' }) : '';
 
-// las rutas relativas de img/video se resuelven contra la página
-function absolutize(list) {
-  const abs = u => { if (!u || /^data:/.test(u)) return u; try { return new URL(u, location.href).href; } catch (e) { return u; } };
+// origen de los datos: frases.json junto a la página; si no responde, las frases de arriba
+const DATA_URL = 'frases.json';
+// las rutas relativas de img/video se resuelven contra el JSON, no contra esta página
+function absolutize(list, base) {
+  const abs = u => { if (!u || /^data:/.test(u)) return u; try { return new URL(u, base).href; } catch (e) { return u; } };
   list.forEach(f => { f.img = abs(f.img); f.video = abs(f.video); });
   return list;
 }
 async function loadData() {
-  if (FRASES) {
-    try { return absolutize(normalize(FRASES)); }
-    catch (e) { console.warn('Frases incrustadas no válidas:', e.message); }
-  }
+  try {
+    const r = await fetch(DATA_URL, { cache:'no-cache' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return absolutize(normalize(await r.json()), r.url || new URL(DATA_URL, location.href).href);
+  } catch (e) { console.warn('No se pudo cargar ' + DATA_URL + ':', e.message); }
   return normalize(DEFAULT);
 }
 

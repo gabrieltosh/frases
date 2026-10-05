@@ -36,5 +36,5 @@ if (flags.autor) frase.autor = flags.autor;
 if (flags.fuente) frase.fuente = flags.fuente;
 if (flags.tags) frase.tags = flags.tags.split(',').map((t) => t.trim()).filter(Boolean);
 
-const ruta = guardarFrase(frase);
-console.log(`${CATEGORIAS[frase.categoria].emoji} ${ruta}`);
+const nueva = guardarFrase(frase);
+console.log(`${CATEGORIAS[frase.categoria].emoji} #${nueva.id} en data/frases.json · ${nueva.category}`);

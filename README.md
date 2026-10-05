@@ -1,14 +1,15 @@
 # Frases
 
 Colección personal de frases, párrafos y líneas sueltas que vale la pena no olvidar.
-Se captura desde el celular por Telegram, se guarda como texto plano en este repo y
+Se captura desde el celular por Telegram, se guarda en un solo JSON en este repo y
 se publica sola como sitio estático en GitHub Pages.
 
 El sitio es inmersivo: una frase por pantalla sobre un fondo de humo animado (WebGL)
 cuyos colores, movimiento y partículas cambian según la categoría.
 
 ```
-frases/<categoría>/<fecha>-<slug>.md   una frase por archivo, texto plano
+data/frases.json                       todas las frases, la única fuente
+data/media/                            imágenes y videos de fondo (opcional)
 categorias.json                        las categorías y sus atajos
 scripts/                               captura, sincronización y build (Node, sin dependencias)
 site/index.html                        la página entera: estilos, JS y shader en un solo archivo
@@ -48,12 +49,11 @@ Cada una acepta atajos (`#musica`, `#letra` y `#c` van a *canción*). Todas se d
 }
 ```
 
-La clave (`conversacion`) es el hashtag y también la carpeta dentro de `frases/`; `nombre` es
-lo que se ve en el sitio; `emoji` sólo lo usa el bot al responder por Telegram; `atajos` son
+La clave (`conversacion`) es el hashtag; `nombre` es lo que va en `category` dentro del JSON y
+se ve en el sitio; `emoji` sólo lo usa el bot al responder por Telegram; `atajos` son
 otros hashtags que llevan a la misma categoría.
 
-Para estrenar una categoría: se añade el bloque y se hace commit. El hashtag funciona enseguida
-y la carpeta se crea sola con la primera frase. En el sitio recibe una paleta generada a partir
+Para estrenar una categoría: se añade el bloque y se hace commit. El hashtag funciona enseguida. En el sitio recibe una paleta generada a partir
 de su nombre; para darle una propia, se agrega su `nombre` a `PAL` en [site/index.html](site/index.html).
 
 ## Capturar desde la computadora
@@ -86,13 +86,32 @@ El interruptor «Animación» del menú (o `prefers-reduced-motion`) apaga el mo
 
 ### De dónde salen las frases
 
-El build las incrusta en la propia página (`FRASES` en [site/index.html](site/index.html)):
-no se publica un `frases.json` aparte, así que no hay una URL desde donde descargarlas en bloque.
-Si se abre `site/index.html` sin build, se ven las frases de ejemplo incluidas en la página.
+De [data/frases.json](data/frases.json). El build lo copia junto a la página y ésta lo pide
+(`frases.json`) cada vez que se abre; si no responde, muestra las frases de ejemplo incluidas
+en la página. El formato:
 
-Cada frase admite `text`, `author`, `source`, `category`, `tags`, `date` y, opcionales,
-`img` y `video` (fondo de la escena; las rutas relativas se resuelven contra la página).
-También entiende el formato del repo (`texto`, `autor`, `fuente`, `categoria`, `fecha`).
+```json
+{
+  "frases": [
+    {
+      "id": 2,
+      "text": "No es que tengamos poco tiempo, sino que perdemos mucho.",
+      "author": "Séneca",
+      "source": "Sobre la brevedad de la vida",
+      "category": "Reflexión",
+      "tags": ["tiempo"],
+      "date": "2026-09-18",
+      "img": "media/seneca.jpg"
+    }
+  ]
+}
+```
+
+Sólo `text` es obligatorio. `category` acepta el nombre (`Reflexión`) o la clave (`reflexion`);
+`img` y `video` son el fondo de la escena y sus rutas se resuelven contra el JSON, así que
+`media/seneca.jpg` es `data/media/seneca.jpg` en el repo. Las más nuevas van primero y, al
+filtrar por categoría o etiqueta, se recorren en ese orden. Si el JSON queda mal escrito, el
+build falla y el sitio sigue mostrando la versión anterior.
 
 ### Como app (PWA)
 
@@ -145,9 +164,8 @@ hace commit y republica el sitio. El bot te contesta confirmando dónde quedó c
 
 ## Editar o reclasificar
 
-Son archivos de texto: se editan desde github.com en el celular, o en el editor de siempre.
-Mover una frase de categoría es mover el archivo de carpeta y cambiar la línea `categoria:`.
-El sitio se reconstruye solo con cada push.
+Todo está en [data/frases.json](data/frases.json): se edita desde github.com en el celular, o en
+el editor de siempre. Reclasificar es cambiar `category`; borrar, quitar el bloque. El bot y
+`npm run nueva` agregan arriba con el siguiente `id`. El sitio se reconstruye solo con cada push.
 
-Las cuatro frases de ejemplo en `frases/` están para que el sitio no nazca vacío: bórralas
-cuando tengas las tuyas.
+Las frases de ejemplo están para que el sitio no nazca vacío: bórralas cuando tengas las tuyas.
