@@ -1,6 +1,16 @@
 {
   "frases": [
     {
+      "id": 8,
+      "text": "La vida es lo que cabe entre dos nadas: la que nos precedió y la que nos espera.",
+      "category": "Propia",
+      "tags": [
+        "vida",
+        "muerte"
+      ],
+      "date": "2026-10-05"
+    },
+    {
       "id": 7,
       "text": "Entre dos vacíos se encuentra la vida: la nada que nos precedió y la muerte que inevitablemente nos espera.",
       "category": "Propia",
