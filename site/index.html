@@ -7,6 +7,14 @@
 <meta name="color-scheme" content="dark">
 <meta name="description" content="Lo que valía la pena no olvidar.">
 <title>Frases</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/favicon.ico" sizes="48x48">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Frases">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -191,6 +199,7 @@
         <button class="tool" id="copyText" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6.5A2.5 2.5 0 0013.5 4h-7A2.5 2.5 0 004 6.5v7A2.5 2.5 0 006.5 16H8"/></svg>Copiar la frase</button>
         <button class="tool" id="copyLink" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3A4 4 0 0011 18.7l1-1"/></svg>Copiar el enlace</button>
         <button class="switch" id="play" type="button" role="switch" aria-checked="false"><span class="track" aria-hidden="true"></span><span>Reproducción automática</span></button>
+        <button class="tool" id="install" type="button" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></svg>Instalar la app</button>
       </div>
     </aside>
     <ol class="index-list" id="indexList"></ol>
@@ -1045,6 +1054,32 @@ document.addEventListener('pointerleave', () => { mouse.active = false; });
 window.addEventListener('hashchange', () => { const i = view.findIndex(f => f.id === decodeURIComponent(location.hash.slice(1))); if (i >= 0 && i !== idx) go(i, i < idx ? 'prev' : 'next'); });
 let rzT; window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(() => { resizeGL(); fxResize(); dirty = true; }, 100); });
 if (mq.addEventListener) mq.addEventListener('change', e => { let s = null; try { s = localStorage.getItem('frases-motion'); } catch (er) {} if (!s) { reduced = e.matches; applyMotion(); } });
+
+/* =====================================================================
+   APP INSTALABLE (PWA)
+   El service worker guarda la página para abrirla sin conexión. «Instalar la app»
+   aparece cuando el navegador lo permite; en iPhone/iPad explica cómo hacerlo a mano.
+   ===================================================================== */
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(e => console.warn('Sin service worker:', e.message)); });
+}
+const installBtn = $('#install');
+const standalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; installBtn.hidden = false; });
+window.addEventListener('appinstalled', () => { installPrompt = null; installBtn.hidden = true; toast('App instalada'); });
+if (ios && !standalone()) installBtn.hidden = false;
+installBtn.addEventListener('click', async () => {
+  if (installPrompt) {
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    installPrompt = null;
+    if (outcome === 'accepted') installBtn.hidden = true;
+  } else if (ios) {
+    toast('En Safari: Compartir → «Agregar a inicio»');
+  }
+});
 
 /* =====================================================================
    ARRANQUE

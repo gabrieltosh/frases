@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { CATEGORIAS, RAIZ, leerFrases } from './lib.mjs';
@@ -26,5 +27,13 @@ fs.rmSync(DIST, { recursive: true, force: true });
 fs.mkdirSync(DIST, { recursive: true });
 fs.writeFileSync(path.join(DIST, 'index.html'), html, 'utf8');
 fs.writeFileSync(path.join(DIST, '.nojekyll'), '', 'utf8');
+
+// PWA: manifest e iconos tal cual; el service worker lleva la versión de esta página,
+// así el navegador lo actualiza (y renueva la caché) cada vez que cambian las frases o el sitio.
+fs.copyFileSync(path.join(SITIO, 'manifest.json'), path.join(DIST, 'manifest.json'));
+fs.cpSync(path.join(SITIO, 'icons'), path.join(DIST, 'icons'), { recursive: true });
+const version = crypto.createHash('sha256').update(html).digest('hex').slice(0, 12);
+const sw = fs.readFileSync(path.join(SITIO, 'sw.js'), 'utf8').replace('{{VERSION}}', version);
+fs.writeFileSync(path.join(DIST, 'sw.js'), sw, 'utf8');
 
 console.log(`dist/index.html · ${frases.length} frases · ${(html.length / 1024).toFixed(1)} kB`);

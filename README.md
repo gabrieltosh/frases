@@ -94,6 +94,21 @@ Cada frase admite `text`, `author`, `source`, `category`, `tags`, `date` y, opci
 `img` y `video` (fondo de la escena; las rutas relativas se resuelven contra la página).
 También entiende el formato del repo (`texto`, `autor`, `fuente`, `categoria`, `fecha`).
 
+### Como app (PWA)
+
+El sitio se instala como app: en Android/Chrome, desde el menú (**Instalar la app**) o el aviso del
+navegador; en iPhone, desde Safari con *Compartir → Agregar a inicio*. Abre a pantalla completa y
+funciona sin conexión con las frases de la última visita.
+
+```
+site/manifest.json   nombre, colores e iconos de la app
+site/sw.js           service worker: la página por red primero y, sin conexión, la última copia
+site/icons/          iconos (icon.svg es el diseño; los PNG y el .ico salen de él)
+```
+
+El build copia todo a `dist/` y le pone a `sw.js` una versión calculada de la página, así que
+cada cambio de frases o del sitio actualiza la app sola.
+
 ### Retocar el aspecto
 
 Todo está en [site/index.html](site/index.html): los colores y el clima de cada categoría
