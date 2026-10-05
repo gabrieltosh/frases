@@ -1,6 +1,16 @@
 {
   "frases": [
     {
+      "id": 7,
+      "text": "Entre dos vacíos se encuentra la vida: la nada que nos precedió y la muerte que inevitablemente nos espera.",
+      "category": "Propia",
+      "tags": [
+        "vida",
+        "muerte"
+      ],
+      "date": "2026-10-04"
+    },
+    {
       "id": 6,
       "text": "El que lee mucho y anda mucho, ve mucho y sabe mucho.",
       "author": "Miguel de Cervantes",
