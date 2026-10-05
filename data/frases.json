@@ -1,6 +1,17 @@
 {
   "frases": [
     {
+      "id": 6,
+      "text": "El que lee mucho y anda mucho, ve mucho y sabe mucho.",
+      "author": "Miguel de Cervantes",
+      "source": "Don Quijote de la Mancha",
+      "category": "Libro",
+      "tags": [
+        "cervantes"
+      ],
+      "date": "2026-10-04"
+    },
+    {
       "id": 5,
       "text": "Esta frase todavía no tiene categoría: así se ve una que capturaste de apuro.",
       "category": "Sin clasificar",
