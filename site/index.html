@@ -90,10 +90,10 @@
   .count b{color:var(--ink); font-weight:500}
   /* música: botón en la botonera y mini reproductor de YouTube (visible, como pide YouTube) */
   .round.music[aria-pressed="true"]{background:var(--accent); color:#121108; border-color:transparent}
-  .player{position:fixed; z-index:6; left:clamp(18px,3vw,34px); bottom:calc(env(safe-area-inset-bottom, 0px) + 54px); width:240px; aspect-ratio:16/9; border-radius:12px; overflow:hidden; border:1px solid var(--line); background:#000; box-shadow:0 10px 30px rgba(0,0,0,.45); opacity:0; transform:translateY(10px); transition:opacity .4s, transform .4s; pointer-events:none}
-  .player.on{opacity:1; transform:none; pointer-events:auto}
+  .player{position:fixed; z-index:6; left:clamp(18px,3vw,34px); bottom:calc(env(safe-area-inset-bottom, 0px) + 54px); width:200px; aspect-ratio:16/9; border-radius:12px; overflow:hidden; border:1px solid var(--line); background:#000; box-shadow:0 10px 30px rgba(0,0,0,.45); opacity:0; transform:translateY(10px); transition:opacity .4s, transform .4s; pointer-events:none}
+  .player.on{opacity:.55; transform:none; pointer-events:auto}
+  .player.on:hover,.player.on:focus-within{opacity:1}
   .player iframe{display:block; width:100%; height:100%; border:0}
-  @media (max-width:560px){ .player{width:200px} }
   .pager{position:fixed; z-index:6; right:clamp(18px,3vw,34px); bottom:calc(env(safe-area-inset-bottom, 0px) + 16px); display:flex; gap:10px}
   .hint{position:fixed; z-index:5; left:50%; bottom:calc(env(safe-area-inset-bottom, 0px) + 20px); transform:translateX(-50%); padding:8px 16px; border-radius:999px; background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); font-size:.85rem; color:var(--muted); white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .8s}
   .hint.show{opacity:1}
@@ -1068,12 +1068,16 @@ if (mq.addEventListener) mq.addEventListener('change', e => { let s = null; try 
 /* =====================================================================
    MÚSICA
    "audio" puede ser un enlace de YouTube (con ?t= para empezar en el verso) o un archivo
-   propio (mp3, ogg…). Suena sólo después de tocar ♪: los navegadores no dejan reproducir
-   con sonido sin un gesto. Una vez encendida, cada frase con canción la pone sola y las
-   que no tienen la pausan.
+   propio (mp3, ogg…). Está encendida por defecto, pero los navegadores no dejan sonar nada
+   hasta que la persona toca la página: arranca con el primer toque, deslizamiento o tecla.
+   ♪ la apaga y la vuelve a encender (se recuerda). Cada frase con canción la pone sola,
+   la misma canción sigue entre frases que la comparten y las que no tienen audio la pausan.
+   El reproductor de YouTube se ve mientras suena: YouTube no permite ocultarlo.
    ===================================================================== */
 const musicBtn = $('#music'), playerEl = $('#player');
-let musicOn = false, curAudio = null, yt = null, ytReady = null, fileAudio = null;
+let musicOn = true, unlocked = false, curAudio = null, fileAudio = null;
+let yt = null, ytApi = null, ytVideo = null;                 // ytVideo: lo que tiene cargado el reproductor
+try { if (localStorage.getItem('frases-music') === 'off') musicOn = false; } catch (e) {}
 function parseYouTube(u) {
   try {
     const url = new URL(u);
@@ -1089,30 +1093,35 @@ function parseYouTube(u) {
   } catch (e) { return null; }
 }
 function loadYouTubeApi() {
-  if (ytReady) return ytReady;
-  ytReady = new Promise((resolve, reject) => {
+  if (ytApi) return ytApi;
+  ytApi = new Promise((resolve, reject) => {
     window.onYouTubeIframeAPIReady = resolve;
     const sc = document.createElement('script');
     sc.src = 'https://www.youtube.com/iframe_api';
-    sc.onerror = () => { ytReady = null; reject(new Error('YouTube no disponible')); };
+    sc.onerror = () => { ytApi = null; reject(new Error('YouTube no disponible')); };
     document.head.append(sc);
   });
-  return ytReady;
+  return ytApi;
 }
-async function playYouTube(v) {
+// deja el video cargado y en pausa en el segundo justo, para que el primer toque lo arranque al instante
+async function cueYouTube(v) {
   await loadYouTubeApi();
   if (!yt) {
     await new Promise(resolve => {
       yt = new YT.Player('ytSlot', {
         videoId: v.id,
-        playerVars: { start: v.start, autoplay: 1, playsinline: 1, rel: 0, controls: 1 },
-        events: { onReady: e => { e.target.playVideo(); resolve(); } }
+        playerVars: { start: v.start, autoplay: 0, playsinline: 1, rel: 0, controls: 1 },
+        events: {
+          onReady: resolve,
+          onStateChange: e => { if (e.data === YT.PlayerState.PLAYING) playerEl.classList.add('on'); },
+          onError: () => { toast('No se pudo reproducir la canción'); stopMusic(); }
+        }
       });
     });
-  } else {
-    yt.loadVideoById({ videoId: v.id, startSeconds: v.start });
+  } else if (!ytVideo || ytVideo.id !== v.id || ytVideo.start !== v.start) {
+    yt.cueVideoById({ videoId: v.id, startSeconds: v.start });
   }
-  playerEl.classList.add('on');
+  ytVideo = v;
 }
 function stopMusic() {
   if (yt && yt.pauseVideo) try { yt.pauseVideo(); } catch (e) {}
@@ -1120,31 +1129,37 @@ function stopMusic() {
   playerEl.classList.remove('on');
   curAudio = null;
 }
-async function startMusic(f) {
-  if (!f || !f.audio) { stopMusic(); return; }
-  if (curAudio === f.audio) return;                      // la misma canción sigue sonando entre frases
+// prepara la canción de la frase y, si ya se puede, la hace sonar (sin await antes de play: iOS lo exige)
+function syncMusic(f) {
+  const audio = f && f.audio;
+  musicBtn.hidden = !audio;
+  const v = audio ? parseYouTube(audio) : null;
+  if (v) cueYouTube(v).then(() => { if (musicOn && unlocked && curAudio === audio && yt.getPlayerState() !== YT.PlayerState.PLAYING) yt.playVideo(); }).catch(e => console.warn(e.message));
+  if (!audio || !musicOn || !unlocked) { stopMusic(); return; }
+  if (curAudio === audio) return;                          // la misma canción sigue sonando entre frases
   stopMusic();
-  curAudio = f.audio;
-  const v = parseYouTube(f.audio);
-  try {
-    if (v) await playYouTube(v);
-    else {
-      fileAudio = fileAudio || Object.assign(new Audio(), { loop: true });
-      fileAudio.src = f.audio;
-      await fileAudio.play();
-    }
-  } catch (e) { console.warn('No se pudo reproducir:', e.message); toast('No se pudo reproducir la canción'); stopMusic(); setMusic(false); }
+  curAudio = audio;
+  if (v) { if (yt && ytVideo && ytVideo.id === v.id && ytVideo.start === v.start) yt.playVideo(); return; }
+  fileAudio = fileAudio || Object.assign(new Audio(), { loop: true });
+  fileAudio.src = audio;
+  fileAudio.play().catch(e => { console.warn('No se pudo reproducir:', e.message); toast('No se pudo reproducir la canción'); stopMusic(); });
 }
 function setMusic(on) {
   musicOn = on;
   musicBtn.setAttribute('aria-pressed', String(on));
-  musicBtn.setAttribute('aria-label', on ? 'Apagar la música' : 'Escuchar la canción');
+  musicBtn.setAttribute('aria-label', on ? 'Apagar la música' : 'Encender la música');
+  try { localStorage.setItem('frases-music', on ? 'on' : 'off'); } catch (e) {}
 }
-function syncMusic(f) {
-  musicBtn.hidden = !(f && f.audio);
-  if (musicOn) startMusic(f); else stopMusic();
-}
-musicBtn.addEventListener('click', () => { setMusic(!musicOn); syncMusic(view[idx]); });
+setMusic(musicOn);
+musicBtn.addEventListener('click', () => { unlocked = true; setMusic(!musicOn); syncMusic(view[idx]); });
+// el primer gesto en cualquier parte habilita el sonido
+const unlock = e => {
+  if (unlocked || (e.target && e.target.closest && e.target.closest('#music'))) return;
+  unlocked = true;
+  ['pointerdown', 'keydown', 'touchend'].forEach(t => window.removeEventListener(t, unlock, true));
+  syncMusic(view[idx]);
+};
+['pointerdown', 'keydown', 'touchend'].forEach(t => window.addEventListener(t, unlock, true));
 
 /* =====================================================================
    APP INSTALABLE (PWA)
