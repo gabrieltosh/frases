@@ -4,14 +4,14 @@ Colección personal de frases, párrafos y líneas sueltas que vale la pena no o
 Se captura desde el celular por Telegram, se guarda como texto plano en este repo y
 se publica sola como sitio estático en GitHub Pages.
 
-El sitio se lee como un libro: una frase por hoja, la hoja se dobla como papel al
-pasarla y la frase se escribe sola al aterrizar.
+El sitio es inmersivo: una frase por pantalla sobre un fondo de humo animado (WebGL)
+cuyos colores, movimiento y partículas cambian según la categoría.
 
 ```
 frases/<categoría>/<fecha>-<slug>.md   una frase por archivo, texto plano
 categorias.json                        las categorías y sus atajos
 scripts/                               captura, sincronización y build (Node, sin dependencias)
-site/                                  plantilla, estilos y JS del sitio
+site/index.html                        la página entera: estilos, JS y shader en un solo archivo
 dist/                                  lo generado (no se versiona)
 ```
 
@@ -43,20 +43,18 @@ Cada una acepta atajos (`#musica`, `#letra` y `#c` van a *canción*). Todas se d
 ```json
 "conversacion": {
   "nombre": "Conversación",
-  "icono": "conversacion",
   "emoji": "❞",
   "atajos": ["v", "conversacion", "conversación", "dicho", "escuchado"]
 }
 ```
 
 La clave (`conversacion`) es el hashtag y también la carpeta dentro de `frases/`; `nombre` es
-lo que se ve en el libro; `icono` apunta a un `<symbol id="i-…">` de [site/iconos.svg](site/iconos.svg);
-`emoji` sólo lo usa el bot al responder por Telegram; `atajos` son otros hashtags que llevan
-a la misma categoría. El orden del archivo es el orden de las píldoras del sitio.
+lo que se ve en el sitio; `emoji` sólo lo usa el bot al responder por Telegram; `atajos` son
+otros hashtags que llevan a la misma categoría.
 
-Para estrenar una categoría: se añade el bloque, se dibuja su `<symbol>` en el sprite y se
-hace commit. El hashtag funciona enseguida y la carpeta se crea sola con la primera frase.
-Si falta el símbolo, el build avisa por consola y pone el icono genérico en su lugar.
+Para estrenar una categoría: se añade el bloque y se hace commit. El hashtag funciona enseguida
+y la carpeta se crea sola con la primera frase. En el sitio recibe una paleta generada a partir
+de su nombre; para darle una propia, se agrega su `nombre` a `PAL` en [site/index.html](site/index.html).
 
 ## Capturar desde la computadora
 
@@ -70,41 +68,41 @@ Flags opcionales que mandan sobre el texto: `--cat`, `--autor`, `--fuente`, `--t
 
 ## Cómo se lee el sitio
 
-Una frase por hoja. Se pasa de página arrastrando la esquina con el dedo o el mouse
-(la hoja se curva y sigue el puntero), tocando el lado derecho o izquierdo, o con las
-flechas. Al pasar el mouse por una esquina, se dobla un poco para invitar.
+Una frase por pantalla. Se pasa deslizando con el dedo, con la rueda del mouse, con las
+flechas o con los botones de abajo a la derecha. Cada clic lanza una onda sobre el humo.
 
 | Tecla | |
 |---|---|
-| `→` `espacio` | siguiente |
-| `←` | anterior |
+| `→` `↓` `espacio` | siguiente |
+| `←` `↑` | anterior |
 | `Inicio` / `Fin` | primera / última |
 | `R` | una al azar |
-| `I` o `/` | abrir el índice (ahí está la búsqueda) |
-| `Esc` | cerrar el índice |
+| `I` o `M` | abrir el menú (categorías, índice, compartir, reproducción automática) |
+| `Esc` | cerrar el menú |
 
-Las píldoras de arriba filtran por categoría; el libro se re-pagina al vuelo. La página
-que estás leyendo queda en la URL, así que compartir una frase es copiar el enlace.
+Con «Todas» el orden es aleatorio; al elegir una categoría o una `#etiqueta` se recorren en
+orden. La frase que estás leyendo queda en la URL, así que compartirla es copiar el enlace.
+El interruptor «Animación» del menú (o `prefers-reduced-motion`) apaga el movimiento.
 
-Todo el contenido va en el HTML: sin JavaScript el libro se convierte en una lista corrida
-y se sigue leyendo entero. Con `prefers-reduced-motion` no hay giro ni tecleo.
+### De dónde salen las frases
+
+La página las pide por `fetch`, en este orden (`DATA_URLS` en [site/index.html](site/index.html)):
+
+1. `http://104.248.224.152/frases.json`, el servidor.
+2. `frases.json` junto a la página: el que genera el build con las frases de este repo.
+3. Las frases de ejemplo incluidas en la propia página.
+
+GitHub Pages sirve el sitio por HTTPS y el navegador bloquea pedidos `http://` desde ahí,
+así que en Pages se usa el `frases.json` del build hasta que el servidor tenga HTTPS.
+
+Cada frase admite `text`, `author`, `source`, `category`, `tags`, `date` y, opcionales,
+`img` y `video` (fondo de la escena; las rutas relativas se resuelven contra el JSON).
+También entiende el formato del repo (`texto`, `autor`, `fuente`, `categoria`, `fecha`).
 
 ### Retocar el aspecto
 
-- [site/estilo.css](site/estilo.css) — colores (los tokens de `:root`), tipografías, tamaño de la hoja.
-- [site/iconos.svg](site/iconos.svg) — el sprite de iconos; se referencian con `<use href="#i-…">`.
-  Para estrenar una categoría, se agrega un `<symbol id="i-loquesea">` y se apunta a él
-  desde `categorias.json` con `"icono": "loquesea"`.
-- [site/app.js](site/app.js) — velocidad del tecleo (`base`, tope de 2,4 s) y del giro
-  (`flippingTime`), sombras del papel (`maxShadowOpacity`) y esquinas (`showPageCorners`).
-- [site/plantilla.html](site/plantilla.html) — la estructura de la página.
-
-### De dónde sale cada cosa
-
-El giro de las hojas lo hace [StPageFlip](https://github.com/Nodlik/StPageFlip) (MIT), que
-va versionada en [site/vendor/](site/vendor) y se incrusta en el HTML durante el build: el
-sitio es un único archivo y no depende de ningún CDN. Si por lo que sea no cargara, el libro
-sigue funcionando sin el giro. Los iconos son SVG propios en el sprite, sin fuentes externas.
+Todo está en [site/index.html](site/index.html): los colores y el clima de cada categoría
+en `PAL`, el shader del humo en `FS`, y las tipografías y tamaños en el `<style>`.
 
 ## Ver el sitio localmente
 
