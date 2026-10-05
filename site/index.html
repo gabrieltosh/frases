@@ -94,6 +94,11 @@
   .player.on{opacity:.55; transform:none; pointer-events:auto}
   .player.on:hover,.player.on:focus-within{opacity:1}
   .player iframe{display:block; width:100%; height:100%; border:0}
+  .tap-hint{position:fixed; z-index:7; left:50%; bottom:calc(env(safe-area-inset-bottom, 0px) + 84px); transform:translate(-50%, 8px); display:flex; align-items:center; gap:8px; padding:9px 16px; border-radius:999px; background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); font-size:.9rem; color:var(--ink); white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .5s, transform .5s}
+  .tap-hint svg{width:16px; height:16px; color:var(--accent)}
+  .tap-hint.show{opacity:1; transform:translate(-50%, 0); animation:latido 2.4s ease-in-out 1s infinite}
+  @keyframes latido{50%{box-shadow:0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent)}}
+  @media (prefers-reduced-motion:reduce){ .tap-hint.show{animation:none} }
   .pager{position:fixed; z-index:6; right:clamp(18px,3vw,34px); bottom:calc(env(safe-area-inset-bottom, 0px) + 16px); display:flex; gap:10px}
   .hint{position:fixed; z-index:5; left:50%; bottom:calc(env(safe-area-inset-bottom, 0px) + 20px); transform:translateX(-50%); padding:8px 16px; border-radius:999px; background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); font-size:.85rem; color:var(--muted); white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .8s}
   .hint.show{opacity:1}
@@ -183,6 +188,7 @@
 
 <div class="count" id="count" aria-hidden="true"></div>
 <div class="player" id="player" aria-label="Reproductor de la canción"><div id="ytSlot"></div></div>
+<div class="tap-hint" id="tapHint" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg><span id="tapHintText">Toca la pantalla para escuchar la canción</span></div>
 <nav class="pager" aria-label="Navegar entre frases">
   <button class="round music" id="music" type="button" aria-pressed="false" aria-label="Escuchar la canción" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg></button>
   <button class="round" id="share" type="button" aria-label="Compartir esta frase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5.5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="18.5" r="2.6"/><path d="M8.3 10.7l7.4-3.9M8.3 13.3l7.4 3.9"/></svg></button>
@@ -1074,7 +1080,7 @@ if (mq.addEventListener) mq.addEventListener('change', e => { let s = null; try 
    la misma canción sigue entre frases que la comparten y las que no tienen audio la pausan.
    El reproductor de YouTube se ve mientras suena: YouTube no permite ocultarlo.
    ===================================================================== */
-const musicBtn = $('#music'), playerEl = $('#player');
+const musicBtn = $('#music'), playerEl = $('#player'), tapHint = $('#tapHint'), tapHintText = $('#tapHintText');
 let musicOn = true, unlocked = false, curAudio = null, fileAudio = null;
 let yt = null, ytApi = null, ytVideo = null;                 // ytVideo: lo que tiene cargado el reproductor
 try { if (localStorage.getItem('frases-music') === 'off') musicOn = false; } catch (e) {}
@@ -1113,7 +1119,7 @@ async function cueYouTube(v) {
         playerVars: { start: v.start, autoplay: 0, playsinline: 1, rel: 0, controls: 1 },
         events: {
           onReady: resolve,
-          onStateChange: e => { if (e.data === YT.PlayerState.PLAYING) playerEl.classList.add('on'); },
+          onStateChange: e => { if (e.data === YT.PlayerState.PLAYING) playerEl.classList.add('on'); updateTapHint(); },
           onError: e => { console.warn('YouTube error', e.data); toast('YouTube no deja reproducir este video aquí'); stopMusic(); }
         }
       });
@@ -1122,6 +1128,15 @@ async function cueYouTube(v) {
     yt.cueVideoById({ videoId: v.id, startSeconds: v.start });
   }
   ytVideo = v;
+}
+// aviso en las frases con canción mientras todavía no suena (en el celular hace falta un toque)
+let blocked = false;
+function updateTapHint() {
+  const f = view[idx];
+  const show = !!(f && f.audio && musicOn && !isPlaying());
+  if (!show) blocked = false;
+  tapHintText.textContent = blocked ? 'Toca el video para que suene' : 'Toca la pantalla para escuchar la canción';
+  tapHint.classList.toggle('show', show);
 }
 function stopMusic() {
   clearTimeout(revealT);
@@ -1140,7 +1155,7 @@ let revealT = 0;
 function revealIfBlocked(audio) {
   clearTimeout(revealT);
   revealT = setTimeout(() => {
-    if (wants(audio) && !isPlaying()) { playerEl.classList.add('on'); toast('Toca el video para que suene'); }
+    if (wants(audio) && !isPlaying()) { playerEl.classList.add('on'); blocked = true; updateTapHint(); }
   }, 2500);
 }
 // prepara la canción de la frase y, si ya se puede, la hace sonar (sin await antes de play: iOS lo exige)
@@ -1148,7 +1163,8 @@ function syncMusic(f) {
   const audio = f && f.audio;
   musicBtn.hidden = !audio;
   const v = audio ? parseYouTube(audio) : null;
-  if (v) cueYouTube(v).then(() => { if (wants(audio) && !isPlaying()) { yt.playVideo(); revealIfBlocked(audio); } }).catch(e => console.warn(e.message));
+  if (v) cueYouTube(v).then(() => { if (wants(audio) && !isPlaying()) { yt.playVideo(); revealIfBlocked(audio); } updateTapHint(); }).catch(e => console.warn(e.message));
+  updateTapHint();
   if (!audio || !musicOn || !unlocked) { stopMusic(); return; }
   if (curAudio === audio && isPlaying()) return;          // la misma canción sigue sonando entre frases
   if (curAudio !== audio) stopMusic();
@@ -1157,7 +1173,10 @@ function syncMusic(f) {
     if (yt && ytVideo && ytVideo.id === v.id && ytVideo.start === v.start) { yt.playVideo(); revealIfBlocked(audio); }
     return;                                                 // si aún se está cargando, el then de arriba lo arranca
   }
-  fileAudio = fileAudio || Object.assign(new Audio(), { loop: true });
+  if (!fileAudio) {
+    fileAudio = Object.assign(new Audio(), { loop: true });
+    ['playing', 'pause'].forEach(t => fileAudio.addEventListener(t, updateTapHint));
+  }
   if (fileAudio.src !== new URL(audio, location.href).href) fileAudio.src = audio;
   fileAudio.play().catch(e => console.warn('No se pudo reproducir:', e.message));
 }
@@ -1166,6 +1185,7 @@ function setMusic(on) {
   musicBtn.setAttribute('aria-pressed', String(on));
   musicBtn.setAttribute('aria-label', on ? 'Apagar la música' : 'Encender la música');
   try { localStorage.setItem('frases-music', on ? 'on' : 'off'); } catch (e) {}
+  if (tapHint) updateTapHint();
 }
 setMusic(musicOn);
 musicBtn.addEventListener('click', () => { unlocked = true; setMusic(!musicOn); syncMusic(view[idx]); });
