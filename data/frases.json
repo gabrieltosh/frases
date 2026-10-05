@@ -1,6 +1,17 @@
 {
   "frases": [
     {
+      "id": 9,
+      "text": "Y el mundo sigue girando\naún sin tu amor.",
+      "author": "Indio Solari y Los Fundamentalistas del Aire Acondicionado",
+      "source": "Había una vez",
+      "category": "Canción",
+      "tags": [
+        "desamor"
+      ],
+      "date": "2026-10-05"
+    },
+    {
       "id": 8,
       "text": "La vida es lo que cabe entre dos nadas: la que nos precedió y la que nos espera.",
       "category": "Propia",

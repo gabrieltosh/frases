@@ -101,7 +101,8 @@ en la página. El formato:
       "category": "Reflexión",
       "tags": ["tiempo"],
       "date": "2026-09-18",
-      "img": "media/seneca.jpg"
+      "img": "media/seneca.jpg",
+      "audio": "https://youtu.be/VIDEO?t=95"
     }
   ]
 }
@@ -109,7 +110,10 @@ en la página. El formato:
 
 Sólo `text` es obligatorio. `category` acepta el nombre (`Reflexión`) o la clave (`reflexion`);
 `img` y `video` son el fondo de la escena y sus rutas se resuelven contra el JSON, así que
-`media/seneca.jpg` es `data/media/seneca.jpg` en el repo. Las más nuevas van primero y, al
+`media/seneca.jpg` es `data/media/seneca.jpg` en el repo. `audio` es la música de esa frase: un enlace
+de YouTube (con `?t=95` o `?t=1m35s` para que empiece en el verso, se ve en un mini reproductor)
+o un archivo propio (`media/algo.mp3`). Suena después de tocar ♪ en la botonera; con la música
+encendida, cada frase con `audio` la pone sola y las demás la pausan. Las más nuevas van primero y, al
 filtrar por categoría o etiqueta, se recorren en ese orden. Si el JSON queda mal escrito, el
 build falla y el sitio sigue mostrando la versión anterior.
 

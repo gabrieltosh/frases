@@ -88,6 +88,12 @@
   /* ---------- contador discreto y pista inicial ---------- */
   .count{position:fixed; z-index:5; left:clamp(18px,3vw,34px); bottom:calc(env(safe-area-inset-bottom, 0px) + 22px); font-variant-numeric:tabular-nums; font-size:.9rem; color:var(--muted); opacity:.7; pointer-events:none}
   .count b{color:var(--ink); font-weight:500}
+  /* música: botón en la botonera y mini reproductor de YouTube (visible, como pide YouTube) */
+  .round.music[aria-pressed="true"]{background:var(--accent); color:#121108; border-color:transparent}
+  .player{position:fixed; z-index:6; left:clamp(18px,3vw,34px); bottom:calc(env(safe-area-inset-bottom, 0px) + 54px); width:240px; aspect-ratio:16/9; border-radius:12px; overflow:hidden; border:1px solid var(--line); background:#000; box-shadow:0 10px 30px rgba(0,0,0,.45); opacity:0; transform:translateY(10px); transition:opacity .4s, transform .4s; pointer-events:none}
+  .player.on{opacity:1; transform:none; pointer-events:auto}
+  .player iframe{display:block; width:100%; height:100%; border:0}
+  @media (max-width:560px){ .player{width:200px} }
   .pager{position:fixed; z-index:6; right:clamp(18px,3vw,34px); bottom:calc(env(safe-area-inset-bottom, 0px) + 16px); display:flex; gap:10px}
   .hint{position:fixed; z-index:5; left:50%; bottom:calc(env(safe-area-inset-bottom, 0px) + 20px); transform:translateX(-50%); padding:8px 16px; border-radius:999px; background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); font-size:.85rem; color:var(--muted); white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .8s}
   .hint.show{opacity:1}
@@ -176,7 +182,9 @@
 <p class="sr-only" id="live" aria-live="polite"></p>
 
 <div class="count" id="count" aria-hidden="true"></div>
+<div class="player" id="player" aria-label="Reproductor de la canción"><div id="ytSlot"></div></div>
 <nav class="pager" aria-label="Navegar entre frases">
+  <button class="round music" id="music" type="button" aria-pressed="false" aria-label="Escuchar la canción" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/></svg></button>
   <button class="round" id="share" type="button" aria-label="Compartir esta frase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5.5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="18.5" r="2.6"/><path d="M8.3 10.7l7.4-3.9M8.3 13.3l7.4 3.9"/></svg></button>
   <button class="round" id="prev" type="button" aria-label="Frase anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 14l-6-6-6 6"/></svg></button>
   <button class="round" id="next" type="button" aria-label="Frase siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 10l6 6 6-6"/></svg></button>
@@ -225,7 +233,7 @@ const root = document.documentElement;
 /* =====================================================================
    DATOS
    Se piden a frases.json (copia de data/frases.json del repo) cada vez que se abre la página.
-   Cada frase admite:  text, author, source, category, tags[], date, img, video
+   Cada frase admite:  text, author, source, category, tags[], date, img, video, audio
    (img y video son opcionales: rutas a las imágenes/videos generados)
    También se entiende el formato del repo: texto, autor, fuente, categoria, fecha.
    ===================================================================== */
@@ -260,7 +268,8 @@ function normalize(raw) {
       tags: tags.map(t => String(t).replace(/^#/, '').trim()).filter(Boolean),
       date: parseDate(r.date || r.fecha),
       img: r.img || r.imagen || null,
-      video: r.video || null
+      video: r.video || null,
+      audio: r.audio || r.musica || r.música || null
     });
   });
   if (!out.length) throw new Error('sin frases');
@@ -279,7 +288,7 @@ const DATA_URL = 'frases.json';
 // las rutas relativas de img/video se resuelven contra el JSON, no contra esta página
 function absolutize(list, base) {
   const abs = u => { if (!u || /^data:/.test(u)) return u; try { return new URL(u, base).href; } catch (e) { return u; } };
-  list.forEach(f => { f.img = abs(f.img); f.video = abs(f.video); });
+  list.forEach(f => { f.img = abs(f.img); f.video = abs(f.video); f.audio = abs(f.audio); });
   return list;
 }
 async function loadData() {
@@ -842,6 +851,7 @@ async function go(i, how, force) {
   void sceneEl.offsetWidth;
   sceneEl.classList.remove('out'); sceneEl.classList.add('in');
   setMedia(f);
+  syncMusic(f);
   preloadNeighbours();
   syncIndex();
   await sleep(reduced ? 120 : 700);
@@ -1056,6 +1066,87 @@ let rzT; window.addEventListener('resize', () => { clearTimeout(rzT); rzT = setT
 if (mq.addEventListener) mq.addEventListener('change', e => { let s = null; try { s = localStorage.getItem('frases-motion'); } catch (er) {} if (!s) { reduced = e.matches; applyMotion(); } });
 
 /* =====================================================================
+   MÚSICA
+   "audio" puede ser un enlace de YouTube (con ?t= para empezar en el verso) o un archivo
+   propio (mp3, ogg…). Suena sólo después de tocar ♪: los navegadores no dejan reproducir
+   con sonido sin un gesto. Una vez encendida, cada frase con canción la pone sola y las
+   que no tienen la pausan.
+   ===================================================================== */
+const musicBtn = $('#music'), playerEl = $('#player');
+let musicOn = false, curAudio = null, yt = null, ytReady = null, fileAudio = null;
+function parseYouTube(u) {
+  try {
+    const url = new URL(u);
+    const host = url.hostname.replace(/^www\.|^m\./, '');
+    let id = null;
+    if (host === 'youtu.be') id = url.pathname.slice(1);
+    else if (/youtube(-nocookie)?\.com$/.test(host)) id = url.searchParams.get('v') || (url.pathname.match(/\/(?:embed|shorts|live)\/([^/?]+)/) || [])[1];
+    if (!id) return null;
+    const t = url.searchParams.get('t') || url.searchParams.get('start') || '0';
+    const m = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/.exec(t) || [];
+    const start = (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0);
+    return { id: id.slice(0, 11), start };
+  } catch (e) { return null; }
+}
+function loadYouTubeApi() {
+  if (ytReady) return ytReady;
+  ytReady = new Promise((resolve, reject) => {
+    window.onYouTubeIframeAPIReady = resolve;
+    const sc = document.createElement('script');
+    sc.src = 'https://www.youtube.com/iframe_api';
+    sc.onerror = () => { ytReady = null; reject(new Error('YouTube no disponible')); };
+    document.head.append(sc);
+  });
+  return ytReady;
+}
+async function playYouTube(v) {
+  await loadYouTubeApi();
+  if (!yt) {
+    await new Promise(resolve => {
+      yt = new YT.Player('ytSlot', {
+        videoId: v.id,
+        playerVars: { start: v.start, autoplay: 1, playsinline: 1, rel: 0, controls: 1 },
+        events: { onReady: e => { e.target.playVideo(); resolve(); } }
+      });
+    });
+  } else {
+    yt.loadVideoById({ videoId: v.id, startSeconds: v.start });
+  }
+  playerEl.classList.add('on');
+}
+function stopMusic() {
+  if (yt && yt.pauseVideo) try { yt.pauseVideo(); } catch (e) {}
+  if (fileAudio) fileAudio.pause();
+  playerEl.classList.remove('on');
+  curAudio = null;
+}
+async function startMusic(f) {
+  if (!f || !f.audio) { stopMusic(); return; }
+  if (curAudio === f.audio) return;                      // la misma canción sigue sonando entre frases
+  stopMusic();
+  curAudio = f.audio;
+  const v = parseYouTube(f.audio);
+  try {
+    if (v) await playYouTube(v);
+    else {
+      fileAudio = fileAudio || Object.assign(new Audio(), { loop: true });
+      fileAudio.src = f.audio;
+      await fileAudio.play();
+    }
+  } catch (e) { console.warn('No se pudo reproducir:', e.message); toast('No se pudo reproducir la canción'); stopMusic(); setMusic(false); }
+}
+function setMusic(on) {
+  musicOn = on;
+  musicBtn.setAttribute('aria-pressed', String(on));
+  musicBtn.setAttribute('aria-label', on ? 'Apagar la música' : 'Escuchar la canción');
+}
+function syncMusic(f) {
+  musicBtn.hidden = !(f && f.audio);
+  if (musicOn) startMusic(f); else stopMusic();
+}
+musicBtn.addEventListener('click', () => { setMusic(!musicOn); syncMusic(view[idx]); });
+
+/* =====================================================================
    APP INSTALABLE (PWA)
    El service worker guarda la página para abrirla sin conexión. «Instalar la app»
    aparece cuando el navegador lo permite; en iPhone/iPad explica cómo hacerlo a mano.
@@ -1100,7 +1191,7 @@ installBtn.addEventListener('click', async () => {
 
   await sleep(reduced ? 50 : 500);                       // entrada: el fondo aparece y luego las palabras
   sceneEl.classList.add('in');
-  setMedia(f); preloadNeighbours();
+  setMedia(f); preloadNeighbours(); syncMusic(f);
   if (!reduced) setTimeout(() => hint.classList.add('show'), 1800), setTimeout(() => hint.classList.remove('show'), 7500);
   scheduleAuto();
 })();
