@@ -1069,7 +1069,7 @@ if (mq.addEventListener) mq.addEventListener('change', e => { let s = null; try 
    MÚSICA
    "audio" puede ser un enlace de YouTube (con ?t= para empezar en el verso) o un archivo
    propio (mp3, ogg…). Está encendida por defecto, pero los navegadores no dejan sonar nada
-   hasta que la persona toca la página: arranca con el primer toque, deslizamiento o tecla.
+   hasta que la persona toca la página: arranca al soltar el primer toque, con un clic o una tecla.
    ♪ la apaga y la vuelve a encender (se recuerda). Cada frase con canción la pone sola,
    la misma canción sigue entre frases que la comparten y las que no tienen audio la pausan.
    El reproductor de YouTube se ve mientras suena: YouTube no permite ocultarlo.
@@ -1114,7 +1114,7 @@ async function cueYouTube(v) {
         events: {
           onReady: resolve,
           onStateChange: e => { if (e.data === YT.PlayerState.PLAYING) playerEl.classList.add('on'); },
-          onError: () => { toast('No se pudo reproducir la canción'); stopMusic(); }
+          onError: e => { console.warn('YouTube error', e.data); toast('YouTube no deja reproducir este video aquí'); stopMusic(); }
         }
       });
     });
@@ -1124,25 +1124,42 @@ async function cueYouTube(v) {
   ytVideo = v;
 }
 function stopMusic() {
+  clearTimeout(revealT);
   if (yt && yt.pauseVideo) try { yt.pauseVideo(); } catch (e) {}
   if (fileAudio) fileAudio.pause();
   playerEl.classList.remove('on');
   curAudio = null;
+}
+function isPlaying() {
+  if (yt && yt.getPlayerState) { const st = yt.getPlayerState(); if (st === 1 || st === 3) return true; }   // 1 sonando, 3 cargando
+  return !!(fileAudio && !fileAudio.paused);
+}
+const wants = audio => musicOn && unlocked && curAudio === audio;
+// si el navegador no dejó arrancar el video (Safari en iPhone suele exigir tocarlo a él), se muestra para tocarlo
+let revealT = 0;
+function revealIfBlocked(audio) {
+  clearTimeout(revealT);
+  revealT = setTimeout(() => {
+    if (wants(audio) && !isPlaying()) { playerEl.classList.add('on'); toast('Toca el video para que suene'); }
+  }, 2500);
 }
 // prepara la canción de la frase y, si ya se puede, la hace sonar (sin await antes de play: iOS lo exige)
 function syncMusic(f) {
   const audio = f && f.audio;
   musicBtn.hidden = !audio;
   const v = audio ? parseYouTube(audio) : null;
-  if (v) cueYouTube(v).then(() => { if (musicOn && unlocked && curAudio === audio && yt.getPlayerState() !== YT.PlayerState.PLAYING) yt.playVideo(); }).catch(e => console.warn(e.message));
+  if (v) cueYouTube(v).then(() => { if (wants(audio) && !isPlaying()) { yt.playVideo(); revealIfBlocked(audio); } }).catch(e => console.warn(e.message));
   if (!audio || !musicOn || !unlocked) { stopMusic(); return; }
-  if (curAudio === audio) return;                          // la misma canción sigue sonando entre frases
-  stopMusic();
+  if (curAudio === audio && isPlaying()) return;          // la misma canción sigue sonando entre frases
+  if (curAudio !== audio) stopMusic();
   curAudio = audio;
-  if (v) { if (yt && ytVideo && ytVideo.id === v.id && ytVideo.start === v.start) yt.playVideo(); return; }
+  if (v) {
+    if (yt && ytVideo && ytVideo.id === v.id && ytVideo.start === v.start) { yt.playVideo(); revealIfBlocked(audio); }
+    return;                                                 // si aún se está cargando, el then de arriba lo arranca
+  }
   fileAudio = fileAudio || Object.assign(new Audio(), { loop: true });
-  fileAudio.src = audio;
-  fileAudio.play().catch(e => { console.warn('No se pudo reproducir:', e.message); toast('No se pudo reproducir la canción'); stopMusic(); });
+  if (fileAudio.src !== new URL(audio, location.href).href) fileAudio.src = audio;
+  fileAudio.play().catch(e => console.warn('No se pudo reproducir:', e.message));
 }
 function setMusic(on) {
   musicOn = on;
@@ -1152,14 +1169,16 @@ function setMusic(on) {
 }
 setMusic(musicOn);
 musicBtn.addEventListener('click', () => { unlocked = true; setMusic(!musicOn); syncMusic(view[idx]); });
-// el primer gesto en cualquier parte habilita el sonido
-const unlock = e => {
-  if (unlocked || (e.target && e.target.closest && e.target.closest('#music'))) return;
+// Cada gesto (soltar el dedo, clic o tecla: los que los navegadores cuentan para dar permiso de
+// sonido) reintenta la canción de la frase actual si debería sonar y no suena. No se usa
+// pointerdown: en el celular todavía no habilita el sonido y el intento fallaba en silencio.
+const onGesture = e => {
+  if (e.target && e.target.closest && e.target.closest('#music, #player')) return;
   unlocked = true;
-  ['pointerdown', 'keydown', 'touchend'].forEach(t => window.removeEventListener(t, unlock, true));
-  syncMusic(view[idx]);
+  const f = view[idx];
+  if (musicOn && f && f.audio && !isPlaying()) syncMusic(f);
 };
-['pointerdown', 'keydown', 'touchend'].forEach(t => window.addEventListener(t, unlock, true));
+['pointerup', 'touchend', 'click', 'keydown'].forEach(t => window.addEventListener(t, onGesture, true));
 
 /* =====================================================================
    APP INSTALABLE (PWA)
