@@ -1,6 +1,18 @@
 {
   "frases": [
     {
+      "id": 12,
+      "text": "Tu amor finito se acabará.",
+      "author": "Kevin Johansen",
+      "source": "Amor Finito",
+      "category": "Canción",
+      "tags": [
+        "amor"
+      ],
+      "date": "2026-10-13",
+      "audio": "https://www.youtube.com/watch?v=utBSZy94Fos&t=1m08s"
+    },
+    {
       "id": 11,
       "text": "El diseño no salvará al mundo, pero el mundo no se salvará si no se diseña.",
       "author": "Ronald Shakespear",
