@@ -174,3 +174,5 @@ el editor de siempre. Reclasificar es cambiar `category`; borrar, quitar el bloq
 `npm run nueva` agregan arriba con el siguiente `id`. El sitio se reconstruye solo con cada push.
 
 Las frases de ejemplo están para que el sitio no nazca vacío: bórralas cuando tengas las tuyas.
+
+> Hecho con cariño, una frase a la vez.
