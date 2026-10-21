@@ -1,6 +1,59 @@
 {
   "frases": [
     {
+      "id": 17,
+      "text": "Se muere tantas veces en la vida, que lo de menos es morir.",
+      "author": "Ramiro Calle",
+      "category": "Reflexión",
+      "tags": [
+        "muerte",
+        "vida"
+      ],
+      "date": "2026-10-21"
+    },
+    {
+      "id": 16,
+      "text": "Nadie tiene derecho a ser inferior a su destino.",
+      "author": "Gabriel Rolón",
+      "source": "Perros de la calle (Urbana Play)",
+      "category": "Reflexión",
+      "tags": [
+        "destino"
+      ],
+      "date": "2026-10-21"
+    },
+    {
+      "id": 15,
+      "text": "Uno tiene el tamaño de los rivales que elige.",
+      "author": "Gabriel Rolón",
+      "category": "Reflexión",
+      "tags": [
+        "rivales"
+      ],
+      "date": "2026-10-21"
+    },
+    {
+      "id": 14,
+      "text": "Amar el alma es invertir en la eternidad.",
+      "category": "Reflexión",
+      "tags": [
+        "alma",
+        "eternidad"
+      ],
+      "date": "2026-10-21"
+    },
+    {
+      "id": 13,
+      "text": "Por la grandeza de un instante se mide, a veces, la grandeza de toda una vida.",
+      "author": "Viktor Frankl",
+      "category": "Reflexión",
+      "tags": [
+        "vida",
+        "instante"
+      ],
+      "date": "2026-10-21"
+    },
+    {
       "id": 12,
       "text": "Tu amor finito se acabará.",
       "author": "Kevin Johansen",
